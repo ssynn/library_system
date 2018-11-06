@@ -2,36 +2,36 @@
 
 ## student
 
-| SID | PASSWORD | SNAME | DEPARTMENT | MAJOR | LIMIT | PUNISHED |
+| <u>SID</u> | PASSWORD | SNAME | DEPARTMENT | MAJOR | MAX | PUNISHED |
 | :-: | :-: | :-: | :-: | :-: | :-: |:-:|
-| char(15) | text | ntext | nchar(20) | nchar(20) | int | int |
+| char(15) | char(70) | ntext | nchar(20) | nchar(20) | int | int |
 
 ## administrator
 
-| AID | passward |
+| AID | PASSWORD |
 | :--: | :--: |
-| char(15) | text |
+| char(15) | char(70) |
 
 ## book
 
-| BID | BNAME | PUBLICATION_DATE | PRESS | POSITION | NUM |
-|:-:|:-:|:-:|:-:|:-:|:-:|
-| char(15) | text | char(12) | nchar(20) | char(10) | int |
+| <u>BID</u> | BNAME | AUTHOR | PUBLICATION_DATE | PRESS | POSITION | SUM | NUM |
+|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| char(15) | ntext | ntext | char(12) | nchar(20) | char(10) | int | int |
 
 ## classify
 
-| BID | CLASSIFY |
+| <u>BID</u> | <u>CLASSIFY</u> |
 |:-:|:-:|
 | char(15) | nchar(20) |
 
 ## borrowing_book
 
-| BID | SID | BORROW_DATE |
-|:-:|:-:|:-:|
-| char(15) | char(15) | char(12) |
+| <u>BID</u> | <u>SID</u> | <u>BORROW_DATE</u> | PUNISH |
+|:-:|:-:|:-:|:-:|
+| char(15) | char(15) | char(12) | int |
 
 ## log
 
-| BID | SID | BORROW_DATE | BACK_DATE |
+| <u>BID</u> | <u>SID</u> | <u>BORROW_DATE</u> | BACK_DATE |
 |:-:|:-:|:-:|:-:|
 | char(15) | char(15) | char(12) | char(20) |
