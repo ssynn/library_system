@@ -14,12 +14,6 @@ class Login(QWidget):
         self.titleText.setAlignment(Qt.AlignCenter)
         self.titleText.setFixedSize(480, 60)
 
-        # 下面一个大框
-        self.inputBox = QWidget()
-        self.inputBox.setObjectName('inputBox')
-        self.inputBox.setContentsMargins(30, 30, 30, 30)
-        self.inputBox.setFixedSize(480, 350)
-
         # 账号标题
         account = QLabel()
         account.setText('账号')
@@ -63,6 +57,12 @@ class Login(QWidget):
         self.inputBoxLayout.addWidget(self.passwordInput)
         self.inputBoxLayout.addWidget(self.signup)
         self.inputBoxLayout.addWidget(self.loginButton)
+
+        # 下面一个大框
+        self.inputBox = QWidget()
+        self.inputBox.setObjectName('inputBox')
+        self.inputBox.setContentsMargins(30, 30, 30, 30)
+        self.inputBox.setFixedSize(480, 350)
         self.inputBox.setLayout(self.inputBoxLayout)
 
         # 把大标题和下面输入框加入self
