@@ -117,6 +117,10 @@ class Signup(QWidget):
         self.initUI()
 
     def inputClick(self, e):
+        for i in range(2, 9):
+            if self.bodyLayout.itemAt(i).widget().text() == '':
+                self.bodyLayout.itemAt(i).widget().setText(self.bodyLayout.itemAt(i).widget().initText)
+
         if e.text() == e.initText:
             e.setText('')
 
