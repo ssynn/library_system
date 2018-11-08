@@ -4,9 +4,11 @@ from PyQt5.QtWidgets import (QApplication, QWidget)
 # from model import login
 # from model import signup
 # from model import database
+# form model import student
 import login
 import signup
 import database
+import student
 
 
 # 密码
@@ -27,7 +29,6 @@ class MainWindow(QWidget):
         self.setFixedSize(1280, 720)
         self.setMyStyle()
         self.show()
-        # self.login.show()
 
     # 创建登录菜单
     def setLogin(self):
@@ -95,29 +96,20 @@ class MainWindow(QWidget):
         self.login.setVisible(True)
 
     def display(self):
-        print(11)
-        self.titleBar = QWidget()
-        self.titleBar.setFixedSize(100, 50)
-        self.titleBar.setParent(self)
-        self.titleBar.setVisible(True)
-        self.titleBar.move(10, 10)
-        self.titleBar.setStyleSheet('''
-        QWidget{
-            background-color: rbga(44, 44, 44, 1);
-            border: 1px;
-        }
-        ''')
-        # self.bodyLayout = QGridLayout()
-        # self.bodyLayout.addWidget(self.titleBar, 0, 0, 1, 7)
-        # self.setLayout(self.bodyLayout)
+        # 显示学生信息
+        if self.user['class'] == 'stu':
+            self.body = student.StudentPage()
+            self.body.setParent(self)
+            self.body.setVisible(True)
+            self.body.account.setText(self.user['SNAME'])
+            self.body.out.clicked.connect(lambda: self.body.close(), self.login.setVisible(True))
 
     def setMyStyle(self):
-        pass
-        # self.setStyleSheet('''
-        # QWidget{
-        #     background-color: white;
-        # }
-        # ''')
+        self.setStyleSheet('''
+        QWidget{
+            background-color: white;
+        }
+        ''')
 
 
 if __name__ == '__main__':

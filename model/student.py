@@ -138,13 +138,13 @@ class StudentPage(QWidget):
             border-right: 1px solid rgba(227, 227, 227, 1);
         }
         QToolButton{
-            color: rgba(113, 118, 121, 1);
+            color: rgba(51, 90, 129, 1);
             font-family: 微软雅黑;
             font-size: 25px;
             border-right: 1px solid rgba(227, 227, 227, 1);
         }
         QToolButton:hover{
-            background-color: rgba(229, 243, 255);
+            background-color: rgba(180, 180, 180, 1);
         }
         ''')
         self.title.setStyleSheet('''
@@ -295,7 +295,7 @@ class BorrowingBooks(QGroupBox):
         itemLayout.addWidget(itemOPERATE)
         itemWidget = QWidget()
         itemWidget.setLayout(itemLayout)
-        
+
         self.table.insertRow(1)
         self.table.setItem(1, 0, itemBID)
         self.table.setItem(1, 1, itemNAME)
