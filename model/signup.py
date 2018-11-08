@@ -1,9 +1,8 @@
 import sys
-from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit, QToolButton)
-from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import (QApplication, QVBoxLayout, QLabel, QLineEdit, QToolButton, QGroupBox)
 
 
-class Signup(QWidget):
+class Signup(QGroupBox):
     def __init__(self):
         super().__init__()
 
@@ -61,8 +60,8 @@ class Signup(QWidget):
         # 重复密码
         self.repPasswordInput = QLineEdit()
         self.repPasswordInput.setFixedSize(400, 40)
-        self.repPasswordInput.setText('请输入密码')
-        self.repPasswordInput.initText = '请输入密码'
+        self.repPasswordInput.setText('请重复输入密码')
+        self.repPasswordInput.initText = '请重复输入密码'
         self.repPasswordInput.setTextMargins(5, 5, 5, 5)
         self.repPasswordInput.mousePressEvent = lambda x: self.inputClick(self.repPasswordInput)
 
@@ -118,20 +117,21 @@ class Signup(QWidget):
 
     def inputClick(self, e):
         for i in range(2, 9):
-            if self.bodyLayout.itemAt(i).widget().text() == '':
-                self.bodyLayout.itemAt(i).widget().setText(self.bodyLayout.itemAt(i).widget().initText)
+            item = self.bodyLayout.itemAt(i).widget()
+            if item.text() == '':
+                item.setText(item.initText)
+                if item is self.passwordInput or item is self.repPasswordInput:
+                    item.setEchoMode(QLineEdit.Normal)
 
         if e.text() == e.initText:
             e.setText('')
+        if e is self.passwordInput or e is self.repPasswordInput:
+            e.setEchoMode(QLineEdit.Password)
 
     def initUI(self):
-        self.setFixedSize(422, 493)
-        # self.resize(480, 600)
+        self.setFixedSize(422, 500)
+        self.setWindowTitle('注册')
         self.setMyStyle()
-        self.show()
-
-    def resizeEvent(self, e):
-        print(self.size())
 
     def setMyStyle(self):
         self.setStyleSheet('''
@@ -149,6 +149,10 @@ class Signup(QWidget):
             color: white;
             font-size: 20px;
             font-family: 微软雅黑;
+        }
+        QGroupBox{
+            border: 1px solid rgba(229, 229, 229, 1);
+            border-radius: 5px;
         }
         ''')
         self.title.setStyleSheet('''
@@ -168,4 +172,5 @@ class Signup(QWidget):
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = Signup()
+    ex.show()
     sys.exit(app.exec_())
