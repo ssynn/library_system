@@ -71,6 +71,7 @@ def main():
     #         print('empty')
     #     log.writelines(time.strftime("%Y-%m-%d %H:%M"))
     # init_database(CONFIG)
+    pass
 
 
 if __name__ == '__main__':

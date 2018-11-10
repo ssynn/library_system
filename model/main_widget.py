@@ -11,15 +11,6 @@ import database
 import student
 
 
-# 密码   为了调试方便就先不加密了
-def encrypt(val):
-    h = hashlib.sha256()
-    password = val
-    h.update(bytes(password, encoding='UTF-8'))
-    result = h.hexdigest()
-    return val
-
-
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
@@ -51,7 +42,7 @@ class MainWindow(QWidget):
     def loginFunction(self):
         user_mes = {
             'ID': self.login.accountInput.text(),
-            'PASSWORD': encrypt(self.login.passwordInput.text())
+            'PASSWORD': database.encrypt(self.login.passwordInput.text())
         }
         self.user = database.signin(user_mes)
         if self.user is not None:

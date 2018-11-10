@@ -55,6 +55,23 @@ def postpone(start: str):
     return ans
 
 
+# 两个日期之间间隔的天数
+def days_between(start: str, end: str):
+    start = start.split('-')
+    end = end.split('-')
+    start[0] = int(start[0])
+    start[1] = int(start[1])
+    start[2] = int(start[2])
+
+    end[0] = int(end[0])
+    end[1] = int(end[1])
+    end[2] = int(end[2])
+
+    s = start[0]*365+start[1]*30+start[2]
+    e = end[0]*365+end[1]*30+end[2]
+    return e-s
+
+
 def signup(user_message: dict) -> bool:
     '''
     user_message should be in the following formate
@@ -158,9 +175,36 @@ def signin(user_message: dict) -> dict:
         return convert(ans)
 
 
-def update_student(user_message):
+# 交罚金
+def pay(BID, SID, PUNISH):
     '''
-    user_message should be in the following formate
+    传入BID, SID, PUNISH把当前数的DEADLINE往后延长两个月
+    返回bool型
+    '''
+    try:
+        res = True
+        conn = pymssql.connect(CONFIG['host'], CONFIG['user'], CONFIG['pwd'], CONFIG['db'])
+        cursor = conn.cursor()
+
+        # book表内NUM加一，删除borrowing_book表内的记录，把记录插入log表
+        cursor.execute('''
+            UPDATE borrowing_book
+            SET DEADLINE=%s, PUNISH=%d
+            WHERE BID=%s AND SID=%s
+            ''', (postpone(time.strftime('%Y-%m-%d-%H:%M')), PUNISH, BID, SID))
+        conn.commit()
+    except Exception as e:
+        print('Pay error!')
+        print(e)
+        res = False
+    finally:
+        conn.close()
+        return res
+
+
+def update_student(user_message: dict):
+    '''
+    传入字典格式如下
     user_message{
         'SID': str,
         'PASSWORD': str,
@@ -169,8 +213,40 @@ def update_student(user_message):
         'MAJOR': str,
         'MAX': int
     }
+    返回bool
     '''
-    pass
+    try:
+        res = True
+        conn = pymssql.connect(CONFIG['host'], CONFIG['user'], CONFIG['pwd'], CONFIG['db'])
+        cursor = conn.cursor()
+        cursor.execute('''
+            UPDATE student
+            SET SNAME=%s, DEPARTMENT=%s, MAJOR=%s, MAX=%s
+            WHERE SID=%s
+            ''', (
+                user_message['SNAME'],
+                user_message['DEPARTMENT'],
+                user_message['MAJOR'],
+                user_message['MAX'],
+                user_message['SID']
+            ))
+        if 'PASSWORD' in user_message:
+            cursor.execute('''
+            UPDATE student
+            SET PASSWORD=%s
+            WHERE SID=%s
+            ''', (
+                user_message['PASSWORD'],
+                user_message['SID']
+            ))
+        conn.commit()
+    except Exception as e:
+        print('Update error!')
+        print(e)
+        res = False
+    finally:
+        conn.close()
+        return res
 
 
 def find_student(mes: str) -> dict:
@@ -195,7 +271,7 @@ def get_borrowing_books(SID: str) -> list:
         ''', (SID,))
         res = cursor.fetchall()
     except Exception as e:
-        print('Signup error!')
+        print('get borrowing books error!')
         print(e)
         res = []
     finally:
@@ -254,6 +330,38 @@ def return_book(BID: str, SID: str) -> bool:
         return res
 
 
+# 获取历史记录
+def get_log(SID: str):
+    '''
+    传入SID
+    返回[[BID, BNAME, BORROW_DATE, BACK_DATE, PUNISHED],...]
+    '''
+    try:
+        conn = pymssql.connect(CONFIG['host'], CONFIG['user'], CONFIG['pwd'], CONFIG['db'])
+        cursor = conn.cursor()
+        cursor.execute('''
+        SELECT book.BID, BNAME, BORROW_DATE, BACK_DATE, PUNISHED
+        FROM log, book
+        WHERE SID=%s AND book.BID=log.BID
+        ''', (SID,))
+        res = cursor.fetchall()
+    except Exception as e:
+        print('get log error!')
+        print(e)
+        res = []
+    finally:
+        conn.close()
+        temp = []
+        for i in res:
+            temp_ = []
+            for j in range(4):
+                temp_.append(remove_zero(i[j]))
+            temp_.append(i[4])
+            temp.append(temp_)
+        temp.sort(key=lambda x: x[3])
+        return temp
+
+
 def delete_student(SID: str) -> bool:
     pass
 
@@ -283,7 +391,7 @@ def search_book(mes: str, stu_mes: dict = {'SID': '1', 'MAX': 5}) -> list:
         cursor = conn.cursor()
 
         # 显示所有书信息
-        if mes == 'ID/书名/作者/出版社':
+        if mes == 'ID/书名/作者/出版社' or mes == '':
             cursor.execute('''
             SELECT *
             FROM book
@@ -384,6 +492,16 @@ def borrow_book(BID: str, SID: str):
         return res
 
 
+# 密码   为了调试方便就先不加密了
+def encrypt(val):
+    import hashlib
+    h = hashlib.sha256()
+    password = val
+    h.update(bytes(password, encoding='UTF-8'))
+    result = h.hexdigest()
+    return val
+
+
 if __name__ == '__main__':
     temp = {
         'SID': '201602',
@@ -394,6 +512,14 @@ if __name__ == '__main__':
         'MAX': 5,
         'PUNISHED': 0
     }
+    user_message = {
+        'SID': '1',
+        'SNAME': '1',
+        'PASSWORD': '123456',
+        'DEPARTMENT': '1',
+        'MAJOR': '2',
+        'MAX': 5
+    }
     temp_login = {
         'ID': '1',
         'PASSWORD': '4fc82b26aecb47d2868c4efbe3581732a3e7cbcc6c2efb32062c08170a05eeb8'
@@ -403,6 +529,8 @@ if __name__ == '__main__':
     # print(return_book('0001', '1'))
     # print(get_borrowing_books('1'))
     # print(signin(temp_login))
-    print(search_book('ID/书名/作者/出版社'))
+    # print(search_book('ID/书名/作者/出版社'))
     # print(postpone('2018-11-10-10:58'))
     # print(borrow_book('2', '1'))
+    # print(get_log('1'))
+    print(update_student(user_message))
