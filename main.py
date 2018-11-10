@@ -1,5 +1,4 @@
 import pymssql
-import time
 
 CONFIG = {
     "host": '127.0.0.1:1433',

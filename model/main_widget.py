@@ -1,5 +1,4 @@
 import sys
-import hashlib
 from PyQt5.QtWidgets import (QApplication, QWidget)
 # from model import login
 # from model import signup
@@ -65,7 +64,7 @@ class MainWindow(QWidget):
                 item.setText('')
         self.user = {
             'SID': self.signup.accountInput.text(),
-            'PASSWORD': encrypt(self.signup.passwordInput.text()),
+            'PASSWORD': database.encrypt(self.signup.passwordInput.text()),
             'SNAME': self.signup.nameInput.text(),
             'DEPARTMENT': self.signup.deptInput.text(),
             'MAJOR': self.signup.majorInput.text(),
