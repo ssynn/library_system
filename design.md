@@ -2,9 +2,9 @@
 
 ## student
 
-| <u>SID</u> | PASSWORD | SNAME | DEPARTMENT | MAJOR | MAX | PUNISHED |
-| :-: | :-: | :-: | :-: | :-: | :-: |:-:|
-| char(15) | char(70) | ntext | nchar(20) | nchar(20) | int | int |
+| <u>SID</u> | PASSWORD | SNAME | DEPARTMENT | MAJOR | MAX |
+| :-: | :-: | :-: | :-: | :-: | :-: |
+| char(15) | char(70) | ntext | nchar(20) | nchar(20) | int |
 
 ## administrator
 
@@ -26,12 +26,12 @@
 
 ## borrowing_book
 
-| <u>BID</u> | <u>SID</u> | <u>BORROW_DATE</u> | PUNISH |
-|:-:|:-:|:-:|:-:|
-| char(15) | char(15) | char(12) | int |
+| <u>BID</u> | <u>SID</u> | <u>BORROW_DATE</u> | DEADLINE | PUNISH |
+|:-:|:-:|:-:|:-:|:-:|
+| char(15) | char(15) | char(12) | char(12) | int |
 
 ## log
 
-| <u>BID</u> | <u>SID</u> | <u>BORROW_DATE</u> | BACK_DATE |
-|:-:|:-:|:-:|:-:|
-| char(15) | char(15) | char(12) | char(20) |
+| <u>BID</u> | <u>SID</u> | <u>BORROW_DATE</u> | BACK_DATE | PUNISHED |
+|:-:|:-:|:-:|:-:|:-:|
+| char(15) | char(15) | char(12) | char(20) | int |

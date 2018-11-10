@@ -24,8 +24,7 @@ def init_database(user: dict):
             SNAME ntext,
             DEPARTMENT nchar(20),
             MAJOR nchar(20),
-            MAX int,
-            PUNISHED int
+            MAX int
         )
         CREATE TABLE administrator(
             AID char(15) PRIMARY KEY,
@@ -45,6 +44,7 @@ def init_database(user: dict):
             BID char(15),
             SID char(15),
             BORROW_DATE char(17),
+            DEADLINE char(17),
             PUNISH int,
             PRIMARY KEY(BID, SID)
         )
@@ -53,6 +53,7 @@ def init_database(user: dict):
             SID char(15),
             BORROW_DATE char(17),
             BACK_DATE char(17),
+            PUNISHED int
             PRIMARY KEY(BID, SID, BORROW_DATE)
         )
         ''')
@@ -64,11 +65,12 @@ def init_database(user: dict):
 
 
 def main():
-    with open('data/log', 'r+') as log:
-        if(len(log.read()) == 0):
-            init_database(CONFIG)
-            print('empty')
-        log.writelines(time.strftime("%Y-%m-%d %H:%M"))
+    # with open('data/log', 'r+') as log:
+    #     if(len(log.read()) == 0):
+    #         init_database(CONFIG)
+    #         print('empty')
+    #     log.writelines(time.strftime("%Y-%m-%d %H:%M"))
+    # init_database(CONFIG)
 
 
 if __name__ == '__main__':

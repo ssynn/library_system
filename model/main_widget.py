@@ -11,13 +11,13 @@ import database
 import student
 
 
-# 密码
+# 密码   为了调试方便就先不加密了
 def encrypt(val):
     h = hashlib.sha256()
     password = val
     h.update(bytes(password, encoding='UTF-8'))
     result = h.hexdigest()
-    return result
+    return val
 
 
 class MainWindow(QWidget):
@@ -72,7 +72,7 @@ class MainWindow(QWidget):
             item = self.signup.bodyLayout.itemAt(i).widget()
             if item.text() == item.initText:
                 item.setText('')
-        self.user_mes = {
+        self.user = {
             'SID': self.signup.accountInput.text(),
             'PASSWORD': encrypt(self.signup.passwordInput.text()),
             'SNAME': self.signup.nameInput.text(),
@@ -81,9 +81,9 @@ class MainWindow(QWidget):
             'MAX': int(self.signup.maxNumInput.text()),
             'PUNISHED': 0
         }
-        self.user_mes['class'] = 'stu'
-        self.user_mes.pop('PASSWORD')
-        ans = database.signup(self.user_mes)
+        ans = database.signup(self.user)
+        self.user['class'] = 'stu'
+        self.user.pop('PASSWORD')
         if ans:
             self.signup.setVisible(False)
             print('成功')
@@ -95,14 +95,18 @@ class MainWindow(QWidget):
         self.signup.setVisible(False)
         self.login.setVisible(True)
 
+    def logout(self):
+        self.body.close()
+        self.login.setVisible(True)
+
     def display(self):
         # 显示学生信息
         if self.user['class'] == 'stu':
-            self.body = student.StudentPage()
+            self.body = student.StudentPage(self.user)
             self.body.setParent(self)
             self.body.setVisible(True)
             self.body.account.setText(self.user['SNAME'])
-            self.body.out.clicked.connect(lambda: self.body.close(), self.login.setVisible(True))
+            self.body.out.clicked.connect(self.logout)
 
     def setMyStyle(self):
         self.setStyleSheet('''
