@@ -44,12 +44,15 @@ class BookInfo(QGroupBox):
         self.subTitle = QLabel()
         self.subTitle.setText('编辑书籍信息')
 
-        # 学号输入框
+        # 书号输入框
         self.BIDInput = QLineEdit()
         self.BIDInput.setFixedSize(400, 40)
         self.BIDInput.setText(self.book_msg['BID'])
         self.BIDInput.initText = '请输入书号'
         self.BIDInput.mousePressEvent = lambda x: self.inputClick(self.BIDInput)
+        # BID不允许修改
+        if self.BIDInput.text() != self.BIDInput.initText:
+            self.BIDInput.setEnabled(False)
 
         # 书名输入框
         self.BNAMEInput = QLineEdit()

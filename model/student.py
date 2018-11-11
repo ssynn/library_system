@@ -14,7 +14,7 @@ import database
 class StudentPage(QWidget):
     def __init__(self, stu_mes):
         super().__init__()
-        self.focus = 3
+        self.focus = 0
         self.stu_mes = stu_mes
         self.initUI()
 
@@ -46,7 +46,7 @@ class StudentPage(QWidget):
 
         self.account = QToolButton()
         self.account.setIcon(QIcon('icon/person.png'))
-        self.account.setText('SSYNN')
+        self.account.setText(self.stu_mes['SID'])
         self.account.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
         self.account.setFixedHeight(20)
         self.account.setEnabled(False)
@@ -214,12 +214,14 @@ class Books(QGroupBox):
         self.stu_mes = stu_mes
         self.book_list = []
         self.body = QVBoxLayout()
+        self.table = None
         self.setTitleBar()
         self.setSearchBar()
-        self.setTable()
+        self.searchFunction()
 
         self.setLayout(self.body)
-        self.initUI()
+        self.setFixedSize(1100, 600)
+        self.setMyStyle()
 
     # 标题栏
     def setTitleBar(self):
@@ -258,10 +260,11 @@ class Books(QGroupBox):
 
     # 搜索方法
     def searchFunction(self):
-        self.book_list = database.search_book(self.searchInput.text())
+        self.book_list = database.search_book(self.searchInput.text(), self.stu_mes['SID'])
         if self.book_list == []:
             print('未找到')
-        self.table.deleteLater()
+        if self.table is not None:
+            self.table.deleteLater()
         self.setTable()
 
     # 设置表格
@@ -272,12 +275,6 @@ class Books(QGroupBox):
         self.table.horizontalHeader().setVisible(False)
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.table.setFocusPolicy(Qt.NoFocus)
-        # self.table.setColumnWidth(0, 150)
-        # self.table.setColumnWidth(1, 150)
-        # self.table.setColumnWidth(2, 125)
-        # self.table.setColumnWidth(3, 125)
-        # self.table.setColumnWidth(4, 100)
-        # self.table.setColumnWidth(5, 150)
 
         self.table.setItem(0, 0, QTableWidgetItem('书号'))
         self.table.setItem(0, 1, QTableWidgetItem('书名'))
@@ -332,6 +329,7 @@ class Books(QGroupBox):
                 background: rgba(38, 175, 217, 1);
                 border: 0;
                 border-radius: 10px;
+                font-size:18px;
             }
             ''')
         else:
@@ -344,6 +342,7 @@ class Books(QGroupBox):
                 background: rgba(200, 200, 200, 1);
                 border: 0;
                 border-radius: 10px;
+                font-size:18px;
             }
             ''')
 
@@ -367,12 +366,9 @@ class Books(QGroupBox):
         ans = database.borrow_book(BID, self.stu_mes['SID'])
         # 刷新表格
         if ans:
-            self.book_list = database.search_book(self.searchInput.text())
-            self.table.deleteLater()
-            self.setTable()
+            self.searchFunction()
 
-    def initUI(self):
-        self.setFixedSize(1100, 600)
+    def setMyStyle(self):
         self.setStyleSheet('''
         *{
             background-color: white;
@@ -413,12 +409,6 @@ class Books(QGroupBox):
                 font-size: 25px;
                 font-family: 微软雅黑;
             }
-        ''')
-        self.table.setStyleSheet('''
-            font-size:18px;
-            color: black;
-            background-color: white;
-            font-family: 微软雅黑;
         ''')
 
 
@@ -477,6 +467,14 @@ class BorrowingBooks(QGroupBox):
         self.book_list = database.get_borrowing_books(self.stu_mes['SID'])
         for i in self.book_list:
             self.insertRow(i)
+        self.table.setStyleSheet('''
+        *{
+            font-size:18px;
+            color: black;
+            background-color: white;
+            font-family: 微软雅黑;
+        }
+        ''')
 
     # 插入行
     def insertRow(self, val: list):
@@ -497,7 +495,8 @@ class BorrowingBooks(QGroupBox):
             itemPUNISHED.setStyleSheet('''
                 *{
                     color: green;
-                    font-size: 20px;
+                    font-size:20px;
+                    font-family: 微软雅黑;
                 }
             ''')
         else:
@@ -505,7 +504,8 @@ class BorrowingBooks(QGroupBox):
             itemPUNISHED.setStyleSheet('''
                 *{
                     color: red;
-                    font-size: 20px;
+                    font-size:20px;
+                    font-family: 微软雅黑;
                 }
             ''')
         itemOPERATE = QToolButton(self.table)
@@ -520,6 +520,7 @@ class BorrowingBooks(QGroupBox):
                 background: rgba(38, 175, 217, 1);
                 border: 0;
                 border-radius: 10px;
+                font-size:18px;
             }
             ''')
         else:
@@ -533,6 +534,7 @@ class BorrowingBooks(QGroupBox):
                 background: rgba(222, 52, 65, 1);
                 border: 0;
                 border-radius: 10px;
+                font-size:18px;
             }
             ''')
 
@@ -585,12 +587,6 @@ class BorrowingBooks(QGroupBox):
             font-size: 25px;
             font-family: 微软雅黑;
         }
-        ''')
-        self.table.setStyleSheet('''
-            font-size:18px;
-            color: black;
-            background-color: white;
-            font-family: 微软雅黑;
         ''')
 
 
@@ -750,7 +746,7 @@ class History(QGroupBox):
 class Detial(QWidget):
     def __init__(self, stu_mes):
         super().__init__()
-        self.stu_mes = stu_mes
+        self.stu_mes = database.get_student_info(stu_mes['SID'])
 
         # 学号输入框
         account = QLabel()

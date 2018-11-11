@@ -4,10 +4,12 @@ from PyQt5.QtWidgets import (QApplication, QWidget)
 # from model import signup
 # from model import database
 # form model import student
+# from model import administrator
 import login
 import signup
 import database
 import student
+import administrator
 
 
 class MainWindow(QWidget):
@@ -95,7 +97,11 @@ class MainWindow(QWidget):
             self.body = student.StudentPage(self.user)
             self.body.setParent(self)
             self.body.setVisible(True)
-            self.body.account.setText(self.user['SNAME'])
+            self.body.out.clicked.connect(self.logout)
+        else:
+            self.body = administrator.AdministratorPage(self.user)
+            self.body.setParent(self)
+            self.body.setVisible(True)
             self.body.out.clicked.connect(self.logout)
 
     def setMyStyle(self):

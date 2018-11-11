@@ -45,8 +45,7 @@ def convert(val: list):
 
 # 把书的元组列表转换为字典
 def convert_book(val: tuple) -> dict:
-    key_list = ['BID', 'BNAME', 'AUTHOR',
-            'PUBLICATION_DATE', 'PRESS', 'POSITION', 'SUM', 'NUM']
+    key_list = ['BID', 'BNAME', 'AUTHOR', 'PUBLICATION_DATE', 'PRESS', 'POSITION', 'SUM', 'NUM']
     ans = {}
     for i, key in zip(val, key_list):
         ans[key] = i
@@ -190,35 +189,8 @@ def signin(user_message: dict) -> dict:
         return convert(ans)
 
 
-# 交罚金
-def pay(BID, SID, PUNISH):
-    '''
-    传入BID, SID, PUNISH把当前数的DEADLINE往后延长两个月
-    返回bool型
-    '''
-    try:
-        res = True
-        conn = pymssql.connect(CONFIG['host'], CONFIG['user'], CONFIG['pwd'], CONFIG['db'])
-        cursor = conn.cursor()
-
-        # book表内NUM加一，删除borrowing_book表内的记录，把记录插入log表
-        cursor.execute('''
-            UPDATE borrowing_book
-            SET DEADLINE=%s, PUNISH=%d
-            WHERE BID=%s AND SID=%s
-            ''', (postpone(time.strftime('%Y-%m-%d-%H:%M')), PUNISH, BID, SID))
-        conn.commit()
-    except Exception as e:
-        print('Pay error!')
-        print(e)
-        res = False
-    finally:
-        conn.close()
-        return res
-
-
 # 更新学生信息
-def update_student(user_message: dict):
+def update_student(user_message: dict) -> bool:
     '''
     传入字典格式如下
     user_message{
@@ -265,48 +237,184 @@ def update_student(user_message: dict):
         return res
 
 
-# 查找学生信息
-def find_student(mes: str) -> dict:
+# 获取学生信息
+def get_student_info(SID: str) -> dict:
     '''
-    可传入学生是学号或姓名进行查找
-    '''
-    pass
-
-
-# 删除学生信息
-def delete_student(SID: str) -> bool:
-    pass
-
-
-# 获取学生的借书信息
-def get_borrowing_books(SID: str) -> list:
-    '''
-    传入学生学号，返回此学生在借的书籍列表信息
-    [[BID, BNAME, BORROW_DATE, DEADLINE, PUNISH, NUM],[...],....]
+    传入SID
+    返回stu_info{
+        'class': stu,
+        'SID': str,
+        'SNAME': str,
+        'DEPARTMENT': str,
+        'MAJOR': str,
+        'MAX': int
+    }
     '''
     try:
         conn = pymssql.connect(CONFIG['host'], CONFIG['user'], CONFIG['pwd'], CONFIG['db'])
         cursor = conn.cursor()
         cursor.execute('''
-        SELECT book.BID, BNAME, BORROW_DATE, DEADLINE, PUNISH, NUM
-        FROM borrowing_book, book
-        WHERE SID=%s AND book.BID=borrowing_book.BID
-        ''', (SID,))
-        res = cursor.fetchall()
+            SELECT SID, SNAME, DEPARTMENT, MAJOR, MAX
+            FROM student
+            WHERE SID=%s
+            ''', (SID))
+        ans = cursor.fetchall()
     except Exception as e:
-        print('get borrowing books error!')
         print(e)
-        res = []
+        print('get student info error')
     finally:
         conn.close()
+        return convert(ans)
+
+
+# 查找学生
+def search_student(info: str):
+    '''
+    传入SID或学生姓名进行查找
+    返回[[SID, SNAME, DEPARTMENT, MAJOR, MAX],...]
+    '''
+    try:
+        res = []
+        val = info.split()
+        val = [(i, '%'+i+'%') for i in val]
+        conn = pymssql.connect(CONFIG['host'], CONFIG['user'], CONFIG['pwd'], CONFIG['db'])
+        cursor = conn.cursor()
+        # 显示所有书信息
+        if info == 'ID/姓名' or info == '':
+            cursor.execute('''
+            SELECT SID, SNAME, DEPARTMENT, MAJOR, MAX
+            FROM student
+            ''')
+            res += cursor.fetchall()
+        else:
+            # 按条件查找
+            for i in val:
+                cursor.execute('''
+                SELECT SID, SNAME, DEPARTMENT, MAJOR, MAX
+                FROM student
+                WHERE SID=%s OR SNAME LIKE %s
+                ''', i)
+                res += cursor.fetchall()
+        res = list(set(res))
         temp = []
         for i in res:
             temp_ = []
             for j in range(4):
                 temp_.append(remove_zero(i[j]))
             temp_.append(i[4])
-            temp_.append(i[5])
             temp.append(temp_)
+        res = temp
+    except Exception as e:
+        print('Search student error!')
+        print(e)
+        res = []
+    finally:
+        conn.close()
+        return res
+
+
+# 删除学生信息
+def delete_student(SID: str) -> bool:
+    '''
+    传入SID
+    删除student表内记录, 
+    找出book表内所借的书强制还书
+    删除log表内的记录
+    '''
+    try:
+        res = True
+        conn = pymssql.connect(CONFIG['host'], CONFIG['user'], CONFIG['pwd'], CONFIG['db'])
+        cursor = conn.cursor()
+        # 先强制把书还掉
+        cursor.execute('''
+            SELECT BID
+            FROM borrowing_book
+            WHERE SID=%s
+        ''', (SID))
+        BID_list = cursor.fetchall()
+        for BID in BID_list:
+            return_book(BID, SID)
+        # 再删除学生信息
+        cursor.execute('''
+            DELETE
+            FROM student
+            WHERE SID=%s
+            DELETE
+            FROM log
+            WHERE SID=%s
+            ''', (SID, SID))
+        conn.commit()
+    except Exception as e:
+        print('delete book error!')
+        print(e)
+        res = False
+    finally:
+        conn.close()
+        return res
+
+
+# 获取学生的借书信息
+def get_borrowing_books(ID: str, BID: bool = False) -> list:
+    '''
+    当BID为False
+    传入学SID，返回此学生在借的书籍列表信息
+    [[BID, BNAME, BORROW_DATE, DEADLINE, PUNISH, NUM],[...],....]
+    当BID=True
+    传入BID，返回借此书的书籍列表信息
+    [[BID, SID, BORROW_DATE, DEADLINE, PUNISH],...]
+    '''
+    try:
+        conn = pymssql.connect(CONFIG['host'], CONFIG['user'], CONFIG['pwd'], CONFIG['db'])
+        cursor = conn.cursor()
+        if ID == '' or ID == 'ID/姓名':
+            cursor.execute('''
+                SELECT *
+                FROM borrowing_book
+            ''')
+            res = cursor.fetchall()
+            temp = []
+            for i in res:
+                temp_ = []
+                for j in range(4):
+                    temp_.append(remove_zero(i[j]))
+                temp_.append(i[4])
+                temp.append(temp_)
+        elif BID:
+            cursor.execute('''
+                SELECT *
+                FROM borrowing_book
+                WHERE BID=%s
+            ''', (ID,))
+            res = cursor.fetchall()
+            temp = []
+            for i in res:
+                temp_ = []
+                for j in range(4):
+                    temp_.append(remove_zero(i[j]))
+                temp_.append(i[4])
+                temp.append(temp_)
+        else:
+            cursor.execute('''
+                SELECT book.BID, BNAME, BORROW_DATE, DEADLINE, PUNISH, NUM
+                FROM borrowing_book, book
+                WHERE SID=%s AND book.BID=borrowing_book.BID
+            ''', (ID,))
+            res = cursor.fetchall()
+            temp = []
+            for i in res:
+                temp_ = []
+                for j in range(4):
+                    temp_.append(remove_zero(i[j]))
+                temp_.append(i[4])
+                temp_.append(i[5])
+                temp.append(temp_)
+        res = temp
+    except Exception as e:
+        print('get borrowing books error!')
+        print(e)
+        res = []
+    finally:
+        conn.close()
         return temp
 
 
@@ -354,8 +462,35 @@ def return_book(BID: str, SID: str) -> bool:
         return res
 
 
+# 交罚金
+def pay(BID: str, SID: str, PUNISH: int) -> bool:
+    '''
+    传入BID, SID, PUNISH把当前数的DEADLINE往后延长两个月
+    返回bool型
+    '''
+    try:
+        res = True
+        conn = pymssql.connect(CONFIG['host'], CONFIG['user'], CONFIG['pwd'], CONFIG['db'])
+        cursor = conn.cursor()
+
+        # book表内NUM加一，删除borrowing_book表内的记录，把记录插入log表
+        cursor.execute('''
+            UPDATE borrowing_book
+            SET DEADLINE=%s, PUNISH=%d
+            WHERE BID=%s AND SID=%s
+            ''', (postpone(time.strftime('%Y-%m-%d-%H:%M')), PUNISH, BID, SID))
+        conn.commit()
+    except Exception as e:
+        print('Pay error!')
+        print(e)
+        res = False
+    finally:
+        conn.close()
+        return res
+
+
 # 获取历史记录
-def get_log(SID: str):
+def get_log(SID: str) -> list:
     '''
     传入SID
     返回[[BID, BNAME, BORROW_DATE, BACK_DATE, PUNISHED],...]
@@ -519,11 +654,38 @@ def update_book(book_info: dict) -> bool:
 
 # 删除书籍
 def delete_book(BID: str) -> bool:
-    pass
+    '''
+    传入BID
+    返回bool
+    会删除book，borrowing_book，log表内所有对应的记录
+    '''
+    try:
+        res = True
+        conn = pymssql.connect(CONFIG['host'], CONFIG['user'], CONFIG['pwd'], CONFIG['db'])
+        cursor = conn.cursor()
+        cursor.execute('''
+            DELETE
+            FROM book
+            WHERE BID=%s
+            DELETE
+            FROM borrowing_book
+            WHERE BID=%s
+            DELETE
+            FROM log
+            WHERE BID=%s
+            ''', (BID, BID, BID))
+        conn.commit()
+    except Exception as e:
+        print('delete book error!')
+        print(e)
+        res = False
+    finally:
+        conn.close()
+        return res
 
 
 # 搜索书籍
-def search_book(mes: str, stu_mes: dict = {'SID': '1', 'MAX': 5}) -> list:
+def search_book(mes: str, SID: str = '') -> list:
     '''
     可以传入BID或作者或出版或书名社进行查找
     返回[[BID, BNAME, AUTHOR, PUBLICATION_DATE, PRESS, POSITION, SUM, NUM, STATE],...]
@@ -560,30 +722,36 @@ def search_book(mes: str, stu_mes: dict = {'SID': '1', 'MAX': 5}) -> list:
             temp.append(temp_)
         res = temp
 
-        # 匹配学生信息
-        punish = False
-        borrowing_book = get_borrowing_books(stu_mes['SID'])
-        for i in borrowing_book:
-            if i[3] < time.strftime("%Y-%m-%d-%H:%M"):
-                punish = True
-                break
-        for book in res:
-            # 有罚金没交
-            if punish:
-                book.append('未交罚金')
-                continue
-            # 如果已经借的书达到上限就不再可借
-            if len(borrowing_book) >= stu_mes['MAX']:
-                book.append('借书达上限')
-                continue
-            # 判断受否有此书
-            for borrow in borrowing_book:
-                if book[0] == borrow[0]:
-                    book.append('已借此书')
+        # 匹配学生信息判断每一本书是否可借
+        if SID != '':
+            cursor.execute('''
+            SELECT MAX
+            FROM student
+            WHERE SID=%s
+            ''', (SID))
+            max_num = cursor.fetchall()[0][0]
+            punish = False
+            borrowing_book = get_borrowing_books(SID)
+            for i in borrowing_book:
+                if i[3] < time.strftime("%Y-%m-%d-%H:%M"):
+                    punish = True
                     break
-            if book[-1] != '已借此书':
-                book.append('借书')
-
+            for book in res:
+                # 有罚金没交
+                if punish:
+                    book.append('未交罚金')
+                    continue
+                # 如果已经借的书达到上限就不再可借
+                if len(borrowing_book) >= max_num:
+                    book.append('借书达上限')
+                    continue
+                # 判断受否有此书
+                for borrow in borrowing_book:
+                    if book[0] == borrow[0]:
+                        book.append('已借此书')
+                        break
+                if book[-1] != '已借此书':
+                    book.append('借书')
     except Exception as e:
         print('Search error!')
         print(e)
@@ -594,7 +762,7 @@ def search_book(mes: str, stu_mes: dict = {'SID': '1', 'MAX': 5}) -> list:
 
 
 # 借书
-def borrow_book(BID: str, SID: str):
+def borrow_book(BID: str, SID: str) -> bool:
     '''
     传入BID和SID
     返回bool
@@ -644,7 +812,8 @@ def encrypt(val):
     password = val
     h.update(bytes(password, encoding='UTF-8'))
     result = h.hexdigest()
-    return val
+    result = val
+    return result
 
 
 if __name__ == '__main__':
@@ -682,7 +851,7 @@ if __name__ == '__main__':
     # print(signup(temp))
 
     # 还书测试
-    # print(get_borrowing_books('1'))
+    print(get_borrowing_books('1', False))
     # print(return_book('0001', '1'))
     # print(get_borrowing_books('1'))
 
@@ -708,4 +877,16 @@ if __name__ == '__main__':
     # print(new_book(book_msg))
 
     # 获取书本详细信息
-    print(get_book_info('7'))
+    # print(get_book_info('7'))
+
+    # 删除书籍
+    # print(delete_book('3'))
+
+    # 查找学生
+    # print(search_student('a 1'))
+
+    # 获取学生信息
+    # print(get_student_info('1'))
+
+    # 删除学生
+    print(delete_student('3'))

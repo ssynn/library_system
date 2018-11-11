@@ -1,23 +1,23 @@
 import sys
 import time
-import os
 from PyQt5.QtWidgets import (QApplication, QWidget, QGridLayout, QGroupBox,
                              QToolButton, QSplitter, QVBoxLayout, QHBoxLayout,
                              QLabel, QTableWidget, QTableWidgetItem, QAbstractItemView,
-                             QLineEdit, QFileDialog)
+                             QLineEdit, QFileDialog, QMessageBox)
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtCore import Qt, QSize
 # from model import database
-# from model import book_information
+# from model import student_information
 import database
+import student_information
 import book_information
 
 
 class AdministratorPage(QWidget):
-    def __init__(self, stu_mes):
+    def __init__(self, info):
         super().__init__()
+        self.info = info
         self.focus = 0
-        self.stu_mes = stu_mes
         self.initUI()
 
     def initUI(self):
@@ -48,7 +48,7 @@ class AdministratorPage(QWidget):
 
         self.account = QToolButton()
         self.account.setIcon(QIcon('icon/person.png'))
-        self.account.setText('ADMIN')
+        self.account.setText(self.info['AID'])
         self.account.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
         self.account.setFixedHeight(20)
         self.account.setEnabled(False)
@@ -144,14 +144,14 @@ class AdministratorPage(QWidget):
     def setContent(self):
         if self.content is not None:
             self.content.deleteLater()
-        if self.focus == 0 or True:
-            self.content = BookManage(self.stu_mes)
-        # elif self.focus == 1:
-        #     self.content = BorrowingBooks(self.stu_mes)
-        # elif self.focus == 2:
-        #     self.content = History(self.stu_mes)
+        if self.focus == 0:
+            self.content = BookManage()
+        elif self.focus == 1:
+            self.content = StudentManage()
+        elif self.focus == 2:
+            self.content = BorrowManage()
         # else:
-        #     self.content = Detial(self.stu_mes)
+        #     self.content = Detial()
         self.body.addWidget(self.content)
 
     def setMyStyle(self):
@@ -211,14 +211,14 @@ class AdministratorPage(QWidget):
 
 
 class BookManage(QGroupBox):
-    def __init__(self, stu_mes):
+    def __init__(self):
         super().__init__()
-        self.stu_mes = stu_mes
         self.book_list = []
         self.body = QVBoxLayout()
+        self.table = None
         self.setTitleBar()
         self.setSearchBar()
-        self.setTable()
+        self.searchFunction()
 
         self.setLayout(self.body)
         self.initUI()
@@ -232,7 +232,7 @@ class BookManage(QGroupBox):
         titleLayout.addSpacing(50)
         titleLayout.addWidget(self.title)
         self.titleBar = QWidget()
-        self.titleBar.setFixedSize(900, 50)
+        self.titleBar.setFixedSize(1000, 50)
         self.titleBar.setLayout(titleLayout)
         self.body.addWidget(self.titleBar)
 
@@ -268,7 +268,8 @@ class BookManage(QGroupBox):
         self.book_list = database.search_book(self.searchInput.text())
         if self.book_list == []:
             print('未找到')
-        self.table.deleteLater()
+        if self.table is not None:
+            self.table.deleteLater()
         self.setTable()
 
     # 设置表格
@@ -343,7 +344,7 @@ class BookManage(QGroupBox):
         itemDelete = QToolButton(self.table)
         itemDelete.setFixedSize(50, 25)
         itemDelete.setText('删除')
-        itemDelete.setEnabled(False)
+        itemDelete.clicked.connect(lambda: self.deleteBookFunction(val[0]))
         itemDelete.setStyleSheet('''
         *{
             color: white;
@@ -402,6 +403,16 @@ class BookManage(QGroupBox):
         if ans:
             self.searchFunction()
 
+    def deleteBookFunction(self, BID: str):
+        msgBox = QMessageBox(QMessageBox.Warning, "警告!", '您将会永久删除这本书以及相关信息!',
+                             QMessageBox.NoButton, self)
+        msgBox.addButton("确认", QMessageBox.AcceptRole)
+        msgBox.addButton("取消", QMessageBox.RejectRole)
+        if msgBox.exec_() == QMessageBox.AcceptRole:
+            ans = database.delete_book(BID)
+            if ans:
+                self.searchFunction()
+
     def initUI(self):
         self.setFixedSize(1100, 600)
         self.setStyleSheet('''
@@ -454,11 +465,434 @@ class BookManage(QGroupBox):
                 font-family: 微软雅黑;
             }
         ''')
-        self.table.setStyleSheet('''
-            font-size:18px;
-            color: black;
-            background-color: white;
+        # self.table.setStyleSheet('''
+        #     font-size:18px;
+        #     color: black;
+        #     background-color: white;
+        #     font-family: 微软雅黑;
+        # ''')
+
+
+class StudentManage(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.book_list = []
+        self.body = QVBoxLayout()
+        self.table = None
+        self.setTitleBar()
+        self.setSearchBar()
+        self.searchFunction()
+
+        self.setLayout(self.body)
+        self.initUI()
+
+    # 标题栏
+    def setTitleBar(self):
+        self.title = QLabel()
+        self.title.setText('学生信息管理')
+        self.title.setFixedHeight(25)
+        titleLayout = QHBoxLayout()
+        titleLayout.addSpacing(50)
+        titleLayout.addWidget(self.title)
+        self.titleBar = QWidget()
+        self.titleBar.setFixedSize(900, 50)
+        self.titleBar.setLayout(titleLayout)
+        self.body.addWidget(self.titleBar)
+
+    # 设置搜索框
+    def setSearchBar(self):
+        self.searchTitle = QLabel()
+        self.searchTitle.setText('搜索学生')
+        self.searchInput = QLineEdit()
+        self.searchInput.setText('ID/姓名')
+        self.searchInput.setClearButtonEnabled(True)
+        self.searchInput.setFixedSize(400, 40)
+        self.searchButton = QToolButton()
+        self.searchButton.setFixedSize(100, 40)
+        self.searchButton.setText('搜索')
+        self.searchButton.clicked.connect(self.searchFunction)
+
+        searchLayout = QHBoxLayout()
+        searchLayout.addStretch()
+        searchLayout.addWidget(self.searchTitle)
+        searchLayout.addWidget(self.searchInput)
+        searchLayout.addWidget(self.searchButton)
+        searchLayout.addStretch()
+
+        self.searchWidget = QWidget()
+        self.searchWidget.setLayout(searchLayout)
+        self.body.addWidget(self.searchWidget)
+
+    # 搜索方法
+    def searchFunction(self):
+        self.stu_list = database.search_student(self.searchInput.text())
+        if self.stu_list == []:
+            print('未找到')
+        if self.table is not None:
+            self.table.deleteLater()
+        self.setTable()
+
+    # 设置表格
+    def setTable(self):
+        self.table = QTableWidget(1, 6)
+        self.table.setContentsMargins(10, 10, 10, 10)
+        self.table.verticalHeader().setVisible(False)
+        self.table.horizontalHeader().setVisible(False)
+        self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.table.setFocusPolicy(Qt.NoFocus)
+
+        self.table.setColumnWidth(2, 150)
+        self.table.setColumnWidth(3, 175)
+        self.table.setColumnWidth(4, 175)
+        self.table.setColumnWidth(5, 120)
+
+        self.table.setItem(0, 0, QTableWidgetItem('学号'))
+        self.table.setItem(0, 1, QTableWidgetItem('姓名'))
+        self.table.setItem(0, 2, QTableWidgetItem('学院'))
+        self.table.setItem(0, 3, QTableWidgetItem('专业'))
+        self.table.setItem(0, 4, QTableWidgetItem('最大借书数'))
+        self.table.setItem(0, 5, QTableWidgetItem('操作'))
+
+        for i in range(6):
+            self.table.item(0, i).setTextAlignment(Qt.AlignCenter)
+            self.table.item(0, i).setFont(QFont('微软雅黑', 15))
+
+        # 显示借阅详情
+        for i in self.stu_list:
+            self.insertRow(i)
+        self.body.addWidget(self.table)
+
+    # 插入行
+    def insertRow(self, val: list):
+        itemSID = QTableWidgetItem(val[0])
+        itemSID.setTextAlignment(Qt.AlignCenter)
+
+        itemNAME = QTableWidgetItem(val[1])
+        itemNAME.setTextAlignment(Qt.AlignCenter)
+
+        itemDEPARTMENT = QTableWidgetItem(val[2])
+        itemDEPARTMENT.setTextAlignment(Qt.AlignCenter)
+
+        itemMAJOR = QTableWidgetItem(val[3])
+        itemMAJOR.setTextAlignment(Qt.AlignCenter)
+
+        itemMAX = QTableWidgetItem(str(val[4]))
+        itemMAX.setTextAlignment(Qt.AlignCenter)
+
+        itemModify = QToolButton(self.table)
+        itemModify.setFixedSize(50, 25)
+        itemModify.setText('修改')
+        itemModify.clicked.connect(lambda: self.updateStudentFunction(val[0]))
+        itemModify.setStyleSheet('''
+        *{
+            color: white;
             font-family: 微软雅黑;
+            background: rgba(38, 175, 217, 1);
+            border: 0;
+            border-radius: 10px;
+        }
+        ''')
+        itemDelete = QToolButton(self.table)
+        itemDelete.setFixedSize(50, 25)
+        itemDelete.setText('删除')
+        itemDelete.clicked.connect(lambda: self.deleteStudentFunction(val[0]))
+        itemDelete.setStyleSheet('''
+        *{
+            color: white;
+                font-family: 微软雅黑;
+                background: rgba(222, 52, 65, 1);
+                border: 0;
+                border-radius: 10px;
+        }
+        ''')
+
+        itemLayout = QHBoxLayout()
+        itemLayout.setContentsMargins(0, 0, 0, 0)
+        itemLayout.addWidget(itemModify)
+        itemLayout.addWidget(itemDelete)
+        itemWidget = QWidget()
+        itemWidget.setLayout(itemLayout)
+
+        self.table.insertRow(1)
+        self.table.setItem(1, 0, itemSID)
+        self.table.setItem(1, 1, itemNAME)
+        self.table.setItem(1, 2, itemDEPARTMENT)
+        self.table.setItem(1, 3, itemMAJOR)
+        self.table.setItem(1, 4, itemMAX)
+        self.table.setCellWidget(1, 5, itemWidget)
+
+    def updateStudentFunction(self, SID: str):
+        stu_info = database.get_student_info(SID)
+        if stu_info is None:
+            return
+        self.updateStudentDialog = student_information.StudentInfo(stu_info)
+        self.updateStudentDialog.after_close.connect(self.updateStudent)
+        self.updateStudentDialog.show()
+
+    def updateStudent(self, stu_info: dict):
+        ans = database.update_student(stu_info)
+        if ans:
+            self.searchFunction()
+
+    def deleteStudentFunction(self, BID: str):
+        msgBox = QMessageBox(QMessageBox.Warning, "警告!", '您将会永久删除此学生以及相关信息!',
+                             QMessageBox.NoButton, self)
+        msgBox.addButton("确认", QMessageBox.AcceptRole)
+        msgBox.addButton("取消", QMessageBox.RejectRole)
+        if msgBox.exec_() == QMessageBox.AcceptRole:
+            ans = database.delete_student(BID)
+            if ans:
+                self.searchFunction()
+
+    def initUI(self):
+        self.setFixedSize(900, 600)
+        self.setStyleSheet('''
+        *{
+            background-color: white;
+            border:0px;
+        }
+        ''')
+        self.titleBar.setStyleSheet('''
+        QWidget {
+            border:0;
+            background-color: rgba(216, 216, 216, 1);
+            border-radius: 20px;
+            color: rgba(113, 118, 121, 1);
+        }
+        QLabel{
+            font-size: 25px;
+            font-family: 微软雅黑;
+        }
+        ''')
+        self.searchTitle.setStyleSheet('''
+            QLabel{
+                font-size:25px;
+                color: black;
+                font-family: 微软雅黑;
+            }
+        ''')
+        self.searchInput.setStyleSheet('''
+            QLineEdit{
+                border: 1px solid rgba(201, 201, 201, 1);
+                border-radius: 5px;
+                color: rgba(120, 120, 120, 1)
+            }
+        ''')
+        self.searchButton.setStyleSheet('''
+            QToolButton{
+                border-radius: 10px;
+                background-color:rgba(52, 118, 176, 1);
+                color: white;
+                font-size: 25px;
+                font-family: 微软雅黑;
+            }
+        ''')
+
+
+class BorrowManage(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.body = QVBoxLayout()
+        self.borrow_list = []
+        self.table = None
+        self.setTitleBar()
+        self.setSearchBar()
+        self.searchFunction()
+
+        self.setLayout(self.body)
+        self.initUI()
+
+    # 标题栏
+    def setTitleBar(self):
+        self.title = QLabel()
+        self.title.setText('借阅信息')
+        self.title.setFixedHeight(25)
+        titleLayout = QHBoxLayout()
+        titleLayout.addSpacing(50)
+        titleLayout.addWidget(self.title)
+        self.titleBar = QWidget()
+        self.titleBar.setFixedSize(900, 50)
+        self.titleBar.setLayout(titleLayout)
+        self.body.addWidget(self.titleBar)
+
+    # 设置搜索框
+    def setSearchBar(self):
+        self.searchTitle = QLabel()
+        self.searchTitle.setText('搜索学生')
+        self.searchInput = QLineEdit()
+        self.searchInput.setText('ID/姓名')
+        self.searchInput.setClearButtonEnabled(True)
+        self.searchInput.setFixedSize(400, 40)
+        self.searchStudentButton = QToolButton()
+        self.searchStudentButton.setFixedSize(120, 40)
+        self.searchStudentButton.setText('搜索学号')
+        self.searchStudentButton.clicked.connect(lambda: self.searchFunction('SID'))
+
+        self.searchBookButton = QToolButton()
+        self.searchBookButton.setFixedSize(120, 40)
+        self.searchBookButton.setText('搜索书号')
+        self.searchBookButton.clicked.connect(lambda: self.searchFunction())
+
+        searchLayout = QHBoxLayout()
+        searchLayout.addStretch()
+        searchLayout.addWidget(self.searchTitle)
+        searchLayout.addWidget(self.searchInput)
+        searchLayout.addWidget(self.searchStudentButton)
+        searchLayout.addWidget(self.searchBookButton)
+        searchLayout.addStretch()
+
+        self.searchWidget = QWidget()
+        self.searchWidget.setLayout(searchLayout)
+        self.body.addWidget(self.searchWidget)
+
+    # 搜索方法
+    def searchFunction(self, e: str = 'BID'):
+        # 搜索书号
+        if e == 'BID':
+            self.borrow_list = database.get_borrowing_books(self.searchInput.text(), True)
+        else:
+            # 搜索学号
+            self.borrow_list = database.get_borrowing_books(self.searchInput.text())
+            self.SID = self.searchInput.text()
+        if self.borrow_list == []:
+            print('未找到')
+        if self.table is not None:
+            self.table.deleteLater()
+        self.setTable()
+
+    # 设置表格
+    def setTable(self, val: dict = None):
+        self.table = QTableWidget(1, 6)
+        self.table.setContentsMargins(10, 10, 10, 10)
+        self.table.setFixedHeight(600)
+        self.table.verticalHeader().setVisible(False)
+        self.table.horizontalHeader().setVisible(False)
+        self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.table.setFocusPolicy(Qt.NoFocus)
+        self.table.setColumnWidth(0, 150)
+        self.table.setColumnWidth(1, 150)
+        self.table.setColumnWidth(2, 175)
+        self.table.setColumnWidth(3, 175)
+
+        self.table.setItem(0, 0, QTableWidgetItem('书号'))
+        self.table.setItem(0, 1, QTableWidgetItem('学生号'))
+        self.table.setItem(0, 2, QTableWidgetItem('借书日期'))
+        self.table.setItem(0, 3, QTableWidgetItem('还书日期'))
+        self.table.setItem(0, 4, QTableWidgetItem('罚金'))
+        self.table.setItem(0, 5, QTableWidgetItem('操作'))
+
+        for i in range(6):
+            self.table.item(0, i).setTextAlignment(Qt.AlignCenter)
+            self.table.item(0, i).setFont(QFont('微软雅黑', 15))
+        for i in self.borrow_list:
+            self.insertRow(i)
+
+        self.body.addWidget(self.table)
+
+    # 插入行
+    def insertRow(self, val: list):
+        itemBID = QTableWidgetItem(val[0])
+        itemBID.setTextAlignment(Qt.AlignCenter)
+        itemNAME = QTableWidgetItem(val[1])
+        itemNAME.setTextAlignment(Qt.AlignCenter)
+        itemBEGIN = QTableWidgetItem(val[2])
+        itemBEGIN.setTextAlignment(Qt.AlignCenter)
+        itemBACK = QTableWidgetItem(val[3])
+        itemBACK.setTextAlignment(Qt.AlignCenter)
+        itemPUNISHED = QLabel()
+        itemPUNISHED.setText('0')
+        itemPUNISHED.setAlignment(Qt.AlignCenter)
+        isPunished = database.days_between(val[3], time.strftime("%Y-%m-%d-%H:%M"))
+        if isPunished <= 0:
+            itemPUNISHED.setStyleSheet('''
+                *{
+                    color: green;
+                    font-size:20px;
+                    font-family: 微软雅黑;
+                }
+            ''')
+        else:
+            itemPUNISHED.setText(str(isPunished*2/10))
+            itemPUNISHED.setStyleSheet('''
+                *{
+                    color: red;
+                    font-size:20px;
+                    font-family: 微软雅黑;
+                }
+            ''')
+        itemOPERATE = QToolButton(self.table)
+        itemOPERATE.setFixedSize(70, 25)
+        itemOPERATE.setText('还书')
+        itemOPERATE.clicked.connect(lambda: self.retrurnBook(val[0], val[1]))
+        itemOPERATE.setStyleSheet('''
+        *{
+            color: white;
+            font-family: 微软雅黑;
+            background: rgba(38, 175, 217, 1);
+            border: 0;
+            border-radius: 10px;
+            font-size:18px;
+        }
+        ''')
+
+        itemLayout = QHBoxLayout()
+        itemLayout.setContentsMargins(0, 0, 0, 0)
+        itemLayout.addWidget(itemOPERATE)
+        itemWidget = QWidget()
+        itemWidget.setLayout(itemLayout)
+
+        self.table.insertRow(1)
+        self.table.setItem(1, 0, itemBID)
+        self.table.setItem(1, 1, itemNAME)
+        self.table.setItem(1, 2, itemBEGIN)
+        self.table.setItem(1, 3, itemBACK)
+        self.table.setCellWidget(1, 4, itemPUNISHED)
+        self.table.setCellWidget(1, 5, itemWidget)
+
+    def retrurnBook(self, BID: str, SID: str):
+        ans = database.return_book(BID, SID)
+        # 刷新表格
+        if ans:
+            self.searchFunction('BID')
+
+    def initUI(self):
+        self.setFixedSize(1000, 600)
+        self.setStyleSheet('''
+        *{
+            background-color: white;
+            border:0px;
+        }
+        ''')
+        self.titleBar.setStyleSheet('''
+        QWidget {
+            border:0;
+            background-color: rgba(216, 216, 216, 1);
+            border-radius: 20px;
+            color: rgba(113, 118, 121, 1);
+        }
+        QLabel{
+            font-size: 25px;
+            font-family: 微软雅黑;
+        }
+        ''')
+        self.searchWidget.setStyleSheet('''
+            QToolButton{
+                border-radius: 10px;
+                background-color:rgba(52, 118, 176, 1);
+                color: white;
+                font-size: 25px;
+                font-family: 微软雅黑;
+            }
+            QLineEdit{
+                border: 1px solid rgba(201, 201, 201, 1);
+                border-radius: 5px;
+                color: rgba(120, 120, 120, 1)
+            }
+            QLabel{
+                font-size:25px;
+                color: black;
+                font-family: 微软雅黑;
+            }
         ''')
 
 
