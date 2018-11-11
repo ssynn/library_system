@@ -13,6 +13,7 @@ CONFIG = {
 }
 
 
+# 去掉字符串末尾的0
 def remove_zero(val):
     while len(val) != 0 and val[-1] == ' ':
         val = val[:-1]
@@ -39,6 +40,18 @@ def convert(val: list):
             'class': 'admin',
             'AID': remove_zero(val[0])
         }
+    return ans
+
+
+# 把书的元组列表转换为字典
+def convert_book(val: tuple) -> dict:
+    key_list = ['BID', 'BNAME', 'AUTHOR',
+            'PUBLICATION_DATE', 'PRESS', 'POSITION', 'SUM', 'NUM']
+    ans = {}
+    for i, key in zip(val, key_list):
+        ans[key] = i
+        if type(i) is not int:
+            ans[key] = remove_zero(i)
     return ans
 
 
@@ -72,9 +85,10 @@ def days_between(start: str, end: str):
     return e-s
 
 
+# 注册
 def signup(user_message: dict) -> bool:
     '''
-    user_message should be in the following formate
+    传入以下格式的字典
     user_message{
         'SID': str,
         'PASSWORD': str,
@@ -117,6 +131,7 @@ def signup(user_message: dict) -> bool:
         return res
 
 
+# 登录
 def signin(user_message: dict) -> dict:
     '''
     传入以下格式的字典
@@ -202,6 +217,7 @@ def pay(BID, SID, PUNISH):
         return res
 
 
+# 更新学生信息
 def update_student(user_message: dict):
     '''
     传入字典格式如下
@@ -249,6 +265,7 @@ def update_student(user_message: dict):
         return res
 
 
+# 查找学生信息
 def find_student(mes: str) -> dict:
     '''
     可传入学生是学号或姓名进行查找
@@ -256,6 +273,12 @@ def find_student(mes: str) -> dict:
     pass
 
 
+# 删除学生信息
+def delete_student(SID: str) -> bool:
+    pass
+
+
+# 获取学生的借书信息
 def get_borrowing_books(SID: str) -> list:
     '''
     传入学生学号，返回此学生在借的书籍列表信息
@@ -287,6 +310,7 @@ def get_borrowing_books(SID: str) -> list:
         return temp
 
 
+# 还书
 def return_book(BID: str, SID: str) -> bool:
     '''
     传入BID, SID，删除borrowing_book表内的记录在log表内新建记录
@@ -362,22 +386,143 @@ def get_log(SID: str):
         return temp
 
 
-def delete_student(SID: str) -> bool:
-    pass
+# 加入新书
+def new_book(book_info: dict) -> bool:
+    '''
+    传入以下格式的字典
+    book_msg{
+        'BID': str,
+        'BNAME': str,
+        'AUTHOR': str,
+        'PUBLICATION_DATE': str,
+        'PRESS': str,
+        'POSITION': str,
+        'SUM': int
+    }
+    返回bool
+    '''
+    res = True
+    try:
+        conn = pymssql.connect(CONFIG['host'], CONFIG['user'], CONFIG['pwd'], CONFIG['db'])
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT *
+            FROM book
+            WHERE BID=%s
+            ''', (book_info['BID']))
+        if len(cursor.fetchall()) != 0:
+            raise Exception('书ID已存在!')
+        cursor.execute('''
+        INSERT
+        INTO book
+        VALUES(%s, %s, %s, %s, %s, %s, %d, %d)
+        ''', (
+            book_info['BID'],
+            book_info['BNAME'],
+            book_info['AUTHOR'],
+            book_info['PUBLICATION_DATE'],
+            book_info['PRESS'],
+            book_info['POSITION'],
+            book_info['SUM'],
+            book_info['SUM']
+        ))
+        conn.commit()
+    except Exception as e:
+        print('add book error!')
+        print(e)
+        res = False
+    finally:
+        conn.close()
+        return res
 
 
-def new_book(book_message: dict) -> bool:
-    pass
+# 获取新书详细信息
+def get_book_info(BID: str) -> dict:
+    '''
+    传入BID
+    返回book_msg{
+        'BID': str,
+        'BNAME': str,
+        'AUTHOR': str,
+        'PUBLICATION_DATE': str,
+        'PRESS': str,
+        'POSITION': str,
+        'SUM': int,
+        'NUM': int
+    }
+    '''
+    try:
+        conn = pymssql.connect(CONFIG['host'], CONFIG['user'], CONFIG['pwd'], CONFIG['db'])
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT *
+            FROM book
+            WHERE BID=%s
+            ''', (BID))
+        res = cursor.fetchall()
+        if len(res) == 0:
+            raise Exception('查无此书')
+    except Exception as e:
+        print('get book info error!')
+        print(e)
+        res = None
+    finally:
+        conn.close()
+        if res is not None:
+            res = convert_book(res[0])
+        return res
 
 
-def update_book(book_message: dict) -> bool:
-    pass
+# 更新书籍信息
+def update_book(book_info: dict) -> bool:
+    '''
+    传入以下格式的字典
+    book_msg{
+        'BID': str,
+        'BNAME': str,
+        'AUTHOR': str,
+        'PUBLICATION_DATE': str,
+        'PRESS': str,
+        'POSITION': str,
+        'SUM': int,
+        'NUM': int
+    }
+    返回bool
+    '''
+    try:
+        res = True
+        conn = pymssql.connect(CONFIG['host'], CONFIG['user'], CONFIG['pwd'], CONFIG['db'])
+        cursor = conn.cursor()
+        cursor.execute('''
+            UPDATE book
+            SET BNAME=%s, AUTHOR=%s, PUBLICATION_DATE=%s, PRESS=%s, POSITION=%s, SUM=%d, NUM=%d
+            WHERE BID=%s
+            ''', (
+                book_info['BNAME'],
+                book_info['AUTHOR'],
+                book_info['PUBLICATION_DATE'],
+                book_info['PRESS'],
+                book_info['POSITION'],
+                book_info['SUM'],
+                book_info['NUM'],
+                book_info['BID']
+            ))
+        conn.commit()
+    except Exception as e:
+        print('Update book error!')
+        print(e)
+        res = False
+    finally:
+        conn.close()
+        return res
 
 
+# 删除书籍
 def delete_book(BID: str) -> bool:
     pass
 
 
+# 搜索书籍
 def search_book(mes: str, stu_mes: dict = {'SID': '1', 'MAX': 5}) -> list:
     '''
     可以传入BID或作者或出版或书名社进行查找
@@ -524,13 +669,43 @@ if __name__ == '__main__':
         'ID': '1',
         'PASSWORD': '4fc82b26aecb47d2868c4efbe3581732a3e7cbcc6c2efb32062c08170a05eeb8'
     }
+    book_msg = {
+                'BID': '4',
+                'BNAME': 'Java',
+                'AUTHOR': 'kak',
+                'PUBLICATION_DATE': '2009-05',
+                'PRESS': '电子出版社',
+                'POSITION': 'C05',
+                'SUM': 5
+            }
+    # 注册测试
     # print(signup(temp))
+
+    # 还书测试
     # print(get_borrowing_books('1'))
     # print(return_book('0001', '1'))
     # print(get_borrowing_books('1'))
+
+    # 登录测试
     # print(signin(temp_login))
+
+    # 查书测试
     # print(search_book('ID/书名/作者/出版社'))
+
+    # 推迟日期方法测试
     # print(postpone('2018-11-10-10:58'))
+
+    # 借书测试
     # print(borrow_book('2', '1'))
+
+    # 获取借书日志测试
     # print(get_log('1'))
-    print(update_student(user_message))
+
+    # 更新学生信息测试
+    # print(update_student(user_message))
+
+    # 加入新书测试
+    # print(new_book(book_msg))
+
+    # 获取书本详细信息
+    print(get_book_info('7'))

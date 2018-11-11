@@ -48,7 +48,7 @@ class StudentPage(QWidget):
         self.account.setIcon(QIcon('icon/person.png'))
         self.account.setText('SSYNN')
         self.account.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
-        self.account.setFixedSize(100, 20)
+        self.account.setFixedHeight(20)
         self.account.setEnabled(False)
 
         self.out = QToolButton()
