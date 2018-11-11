@@ -648,18 +648,18 @@ class History(QGroupBox):
 
     # 插入行
     def insertRow(self, val: list):
-        itemBID = QTableWidgetItem(val[0])
+        itemBID = QTableWidgetItem(val[1])
         itemBID.setTextAlignment(Qt.AlignCenter)
-        itemNAME = QTableWidgetItem('《' + val[1] + '》')
+        itemNAME = QTableWidgetItem('《' + val[2] + '》')
         itemNAME.setTextAlignment(Qt.AlignCenter)
-        itemBEGIN = QTableWidgetItem(val[2])
+        itemBEGIN = QTableWidgetItem(val[3])
         itemBEGIN.setTextAlignment(Qt.AlignCenter)
-        itemBACK = QTableWidgetItem(val[3])
+        itemBACK = QTableWidgetItem(val[4])
         itemBACK.setTextAlignment(Qt.AlignCenter)
         itemPUNISHED = QLabel()
-        itemPUNISHED.setText(str(val[4]))
+        itemPUNISHED.setText(str(val[5]))
         itemPUNISHED.setAlignment(Qt.AlignCenter)
-        if val[4] == 0:
+        if val[5] == 0:
             itemPUNISHED.setStyleSheet('''
                 *{
                     color: green;
@@ -700,11 +700,11 @@ class History(QGroupBox):
         dirName = QFileDialog.getExistingDirectory(self, '选择文件夹')
 
         title = ['SID', 'BID', 'BNAME', 'BORROW_DATE', 'BACK_DATE', 'PUNISHED']
-        with open(os.path.join(dirName, '1.csv'), 'w', newline='') as f:
+        with open(os.path.join(dirName, self.stu_mes['SID'] + '.csv'), 'w', newline='') as f:
             writer = csv.writer(f)
             writer.writerow(title)
             for row in self.list:
-                writer.writerow(['1']+row)
+                writer.writerow(row)
 
     def initUI(self):
         self.setFixedSize(1000, 600)

@@ -317,7 +317,7 @@ def search_student(info: str):
 def delete_student(SID: str) -> bool:
     '''
     传入SID
-    删除student表内记录, 
+    删除student表内记录,
     找出book表内所借的书强制还书
     删除log表内的记录
     '''
@@ -490,19 +490,32 @@ def pay(BID: str, SID: str, PUNISH: int) -> bool:
 
 
 # 获取历史记录
-def get_log(SID: str) -> list:
+def get_log(ID: str, BID: bool = False) -> list:
     '''
     传入SID
-    返回[[BID, BNAME, BORROW_DATE, BACK_DATE, PUNISHED],...]
+    返回[[SID, BID, BNAME, BORROW_DATE, BACK_DATE, PUNISHED],...]
     '''
     try:
         conn = pymssql.connect(CONFIG['host'], CONFIG['user'], CONFIG['pwd'], CONFIG['db'])
         cursor = conn.cursor()
-        cursor.execute('''
-        SELECT book.BID, BNAME, BORROW_DATE, BACK_DATE, PUNISHED
-        FROM log, book
-        WHERE SID=%s AND book.BID=log.BID
-        ''', (SID,))
+        if ID == '' or ID == 'ID/姓名':
+            cursor.execute('''
+                SELECT SID, book.BID, BNAME, BORROW_DATE, BACK_DATE, PUNISHED
+                FROM log, book
+                WHERE book.BID=log.BID
+            ''')
+        elif BID:
+            cursor.execute('''
+                SELECT SID, book.BID, BNAME, BORROW_DATE, BACK_DATE, PUNISHED
+                FROM log, book
+                WHERE log.BID=%s AND book.BID=log.BID
+            ''', (ID,))
+        else:
+            cursor.execute('''
+                SELECT SID, book.BID, BNAME, BORROW_DATE, BACK_DATE, PUNISHED
+                FROM log, book
+                WHERE SID=%s AND book.BID=log.BID
+            ''', (ID,))
         res = cursor.fetchall()
     except Exception as e:
         print('get log error!')
@@ -513,11 +526,11 @@ def get_log(SID: str) -> list:
         temp = []
         for i in res:
             temp_ = []
-            for j in range(4):
+            for j in range(5):
                 temp_.append(remove_zero(i[j]))
-            temp_.append(i[4])
+            temp_.append(i[5])
             temp.append(temp_)
-        temp.sort(key=lambda x: x[3])
+        temp.sort(key=lambda x: x[4])
         return temp
 
 
@@ -868,7 +881,7 @@ if __name__ == '__main__':
     # print(borrow_book('2', '1'))
 
     # 获取借书日志测试
-    # print(get_log('1'))
+    print(get_log('1', True))
 
     # 更新学生信息测试
     # print(update_student(user_message))
@@ -889,4 +902,4 @@ if __name__ == '__main__':
     # print(get_student_info('1'))
 
     # 删除学生
-    print(delete_student('3'))
+    # print(delete_student('3'))

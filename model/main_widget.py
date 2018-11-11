@@ -48,7 +48,6 @@ class MainWindow(QWidget):
         self.user = database.signin(user_mes)
         if self.user is not None:
             self.login.setVisible(False)
-            print(self.user)
             self.display()
         else:
             print('登录失败!')
