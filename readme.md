@@ -19,3 +19,31 @@
 * 登录
 
 <img src="https://github.com/ssynn/library_system/blob/master/screenshots/signin.png" width="100%" height="100%">
+
+* 注册
+
+<img src="https://github.com/ssynn/library_system/blob/master/screenshots/signup.png" width="100%" height="100%">
+
+* 管理员
+
+<img src="https://github.com/ssynn/library_system/tree/master/screenshots/admin/1.png" width="100%" height="100%">
+
+<img src="https://github.com/ssynn/library_system/tree/master/screenshots/admin/2.png" width="100%" height="100%">
+
+<img src="https://github.com/ssynn/library_system/tree/master/screenshots/admin/3.png" width="100%" height="100%">
+
+<img src="https://github.com/ssynn/library_system/tree/master/screenshots/admin/4.png" width="100%" height="100%">
+
+<img src="https://github.com/ssynn/library_system/tree/master/screenshots/admin/5.png" width="100%" height="100%">
+
+<img src="https://github.com/ssynn/library_system/tree/master/screenshots/admin/6.png" width="100%" height="100%">
+
+* 学生
+
+<img src="https://github.com/ssynn/library_system/tree/master/screenshots/student/1.png" width="100%" height="100%">
+
+<img src="https://github.com/ssynn/library_system/tree/master/screenshots/student/2.png" width="100%" height="100%">
+
+<img src="https://github.com/ssynn/library_system/tree/master/screenshots/student/3.png" width="100%" height="100%">
+
+<img src="https://github.com/ssynn/library_system/tree/master/screenshots/student/4.png" width="100%" height="100%">
