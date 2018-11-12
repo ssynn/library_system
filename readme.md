@@ -13,3 +13,9 @@
 2. 能明细查询某学生的借书情况及图书的借出情况
 3. 能统计出某图书的总借出数量与库存量及某学生借书总数，当天为止总罚金等。
 4. 其他必要的查询、统计功能。
+
+## 截图
+
+* 登录
+
+<img src="https://github.com/ssynn/library_system/blob/master/screenshots/signin.png" width="100%" height="100%">
