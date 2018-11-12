@@ -4,7 +4,7 @@ import os
 from PyQt5.QtWidgets import (QApplication, QWidget, QGridLayout, QGroupBox,
                              QToolButton, QSplitter, QVBoxLayout, QHBoxLayout,
                              QLabel, QTableWidget, QTableWidgetItem, QAbstractItemView,
-                             QLineEdit, QFileDialog)
+                             QLineEdit, QFileDialog, QToolTip)
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtCore import Qt, QSize
 # from model import database
@@ -335,14 +335,20 @@ class Books(QGroupBox):
         else:
             itemOPERATE.setText('不可借')
             itemOPERATE.setEnabled(False)
+            itemOPERATE.setToolTip(val[-1])
+            QToolTip.setFont(QFont('微软雅黑', 15))
             itemOPERATE.setStyleSheet('''
-            *{
+            QToolButton{
                 color: white;
                 font-family: 微软雅黑;
                 background: rgba(200, 200, 200, 1);
                 border: 0;
                 border-radius: 10px;
                 font-size:18px;
+            }
+            QToolTip{
+                color: black;
+                border: 1px solid rgba(200, 200, 200, 1);
             }
             ''')
 
@@ -478,19 +484,19 @@ class BorrowingBooks(QGroupBox):
 
     # 插入行
     def insertRow(self, val: list):
-        itemBID = QTableWidgetItem(val[0])
+        itemBID = QTableWidgetItem(val[1])
         itemBID.setTextAlignment(Qt.AlignCenter)
-        itemNAME = QTableWidgetItem('《' + val[1] + '》')
+        itemNAME = QTableWidgetItem('《' + val[2] + '》')
         itemNAME.setTextAlignment(Qt.AlignCenter)
-        itemBEGIN = QTableWidgetItem(val[2])
+        itemBEGIN = QTableWidgetItem(val[3])
         itemBEGIN.setTextAlignment(Qt.AlignCenter)
-        itemBACK = QTableWidgetItem(val[3])
+        itemBACK = QTableWidgetItem(val[4])
         itemBACK.setTextAlignment(Qt.AlignCenter)
         itemPUNISHED = QLabel()
         itemPUNISHED.setText('0')
         itemPUNISHED.setAlignment(Qt.AlignCenter)
         isPunished = database.days_between(
-            val[3], time.strftime("%Y-%m-%d-%H:%M"))
+            val[4], time.strftime("%Y-%m-%d-%H:%M"))
         if isPunished <= 0:
             itemPUNISHED.setStyleSheet('''
                 *{
@@ -500,7 +506,7 @@ class BorrowingBooks(QGroupBox):
                 }
             ''')
         else:
-            itemPUNISHED.setText(str(isPunished*2/10))
+            itemPUNISHED.setText(str(isPunished))
             itemPUNISHED.setStyleSheet('''
                 *{
                     color: red;
@@ -512,7 +518,7 @@ class BorrowingBooks(QGroupBox):
         itemOPERATE.setFixedSize(70, 25)
         if isPunished <= 0:
             itemOPERATE.setText('还书')
-            itemOPERATE.clicked.connect(lambda: self.retrurnBook(val[0]))
+            itemOPERATE.clicked.connect(lambda: self.retrurnBook(val[1]))
             itemOPERATE.setStyleSheet('''
             *{
                 color: white;
@@ -526,7 +532,7 @@ class BorrowingBooks(QGroupBox):
         else:
             itemOPERATE.setText('交罚金')
             itemOPERATE.clicked.connect(
-                lambda: self.pay(val[0], isPunished*2/10))
+                lambda: self.pay(val[1], isPunished))
             itemOPERATE.setStyleSheet('''
             *{
                 color: white;

@@ -436,7 +436,7 @@ class BookManage(QGroupBox):
         ''')
         self.searchTitle.setStyleSheet('''
             QLabel{
-                font-size:20px;
+                font-size:25px;
                 color: black;
                 font-family: 微软雅黑;
             }
@@ -496,7 +496,7 @@ class StudentManage(QWidget):
         titleLayout.addSpacing(50)
         titleLayout.addWidget(self.title)
         self.titleBar = QWidget()
-        self.titleBar.setFixedSize(900, 50)
+        self.titleBar.setFixedSize(880, 50)
         self.titleBar.setLayout(titleLayout)
         self.body.addWidget(self.titleBar)
 
@@ -706,7 +706,7 @@ class BorrowManage(QWidget):
     # 标题栏
     def setTitleBar(self):
         self.title = QLabel()
-        self.title.setText('借阅信息')
+        self.title.setText('借阅信息管理')
         self.title.setFixedHeight(25)
         titleLayout = QHBoxLayout()
         titleLayout.addSpacing(50)
@@ -723,7 +723,7 @@ class BorrowManage(QWidget):
         self.searchInput = QLineEdit()
         self.searchInput.setText('ID/姓名')
         self.searchInput.setClearButtonEnabled(True)
-        self.searchInput.setFixedSize(400, 40)
+        self.searchInput.setFixedSize(450, 40)
         self.searchStudentButton = QToolButton()
         self.searchStudentButton.setFixedSize(120, 40)
         self.searchStudentButton.setText('搜索学号')
@@ -765,7 +765,7 @@ class BorrowManage(QWidget):
     def setTable(self, val: dict = None):
         self.table = QTableWidget(1, 6)
         self.table.setContentsMargins(10, 10, 10, 10)
-        self.table.setFixedHeight(600)
+        self.table.setFixedHeight(500)
         self.table.verticalHeader().setVisible(False)
         self.table.horizontalHeader().setVisible(False)
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
@@ -775,12 +775,13 @@ class BorrowManage(QWidget):
         self.table.setColumnWidth(2, 175)
         self.table.setColumnWidth(3, 175)
 
-        self.table.setItem(0, 0, QTableWidgetItem('书号'))
-        self.table.setItem(0, 1, QTableWidgetItem('学生号'))
-        self.table.setItem(0, 2, QTableWidgetItem('借书日期'))
-        self.table.setItem(0, 3, QTableWidgetItem('还书日期'))
-        self.table.setItem(0, 4, QTableWidgetItem('罚金'))
-        self.table.setItem(0, 5, QTableWidgetItem('操作'))
+        self.table.setItem(0, 0, QTableWidgetItem('学生号'))
+        self.table.setItem(0, 1, QTableWidgetItem('书号'))
+        self.table.setItem(0, 2, QTableWidgetItem('书名'))
+        self.table.setItem(0, 3, QTableWidgetItem('借书日期'))
+        self.table.setItem(0, 4, QTableWidgetItem('还书日期'))
+        self.table.setItem(0, 5, QTableWidgetItem('罚金'))
+        self.table.setItem(0, 6, QTableWidgetItem('操作'))
 
         for i in range(6):
             self.table.item(0, i).setTextAlignment(Qt.AlignCenter)
@@ -792,18 +793,20 @@ class BorrowManage(QWidget):
 
     # 插入行
     def insertRow(self, val: list):
-        itemBID = QTableWidgetItem(val[0])
+        itemSID = QTableWidgetItem(val[0])
+        itemSID.setTextAlignment(Qt.AlignCenter)
+        itemBID = QTableWidgetItem(val[1])
         itemBID.setTextAlignment(Qt.AlignCenter)
-        itemNAME = QTableWidgetItem(val[1])
+        itemNAME = QTableWidgetItem(val[2])
         itemNAME.setTextAlignment(Qt.AlignCenter)
-        itemBEGIN = QTableWidgetItem(val[2])
+        itemBEGIN = QTableWidgetItem(val[3])
         itemBEGIN.setTextAlignment(Qt.AlignCenter)
-        itemBACK = QTableWidgetItem(val[3])
+        itemBACK = QTableWidgetItem(val[4])
         itemBACK.setTextAlignment(Qt.AlignCenter)
         itemPUNISHED = QLabel()
         itemPUNISHED.setText('0')
         itemPUNISHED.setAlignment(Qt.AlignCenter)
-        isPunished = database.days_between(val[3], time.strftime("%Y-%m-%d-%H:%M"))
+        isPunished = database.days_between(val[4], time.strftime("%Y-%m-%d-%H:%M"))
         if isPunished <= 0:
             itemPUNISHED.setStyleSheet('''
                 *{
@@ -813,7 +816,7 @@ class BorrowManage(QWidget):
                 }
             ''')
         else:
-            itemPUNISHED.setText(str(isPunished*2/10))
+            itemPUNISHED.setText(str(isPunished))
             itemPUNISHED.setStyleSheet('''
                 *{
                     color: red;
@@ -824,7 +827,7 @@ class BorrowManage(QWidget):
         itemOPERATE = QToolButton(self.table)
         itemOPERATE.setFixedSize(70, 25)
         itemOPERATE.setText('还书')
-        itemOPERATE.clicked.connect(lambda: self.retrurnBook(val[0], val[1]))
+        itemOPERATE.clicked.connect(lambda: self.retrurnBook(val[0], val[1], isPunished))
         itemOPERATE.setStyleSheet('''
         *{
             color: white;
@@ -850,7 +853,9 @@ class BorrowManage(QWidget):
         self.table.setCellWidget(1, 4, itemPUNISHED)
         self.table.setCellWidget(1, 5, itemWidget)
 
-    def retrurnBook(self, BID: str, SID: str):
+    def retrurnBook(self, SID: str, BID: str, isPunished: int):
+        if isPunished > 0:
+            database.pay(BID, SID, isPunished)
         ans = database.return_book(BID, SID)
         # 刷新表格
         if ans:
@@ -977,7 +982,7 @@ class HistoryManage(QWidget):
     # 创建表格
     def setTable(self, val: dict = None):
         self.table = QTableWidget(1, 6)
-        self.table.setFixedHeight(600)
+        self.table.setFixedHeight(450)
         self.table.setContentsMargins(10, 10, 10, 10)
         self.table.verticalHeader().setVisible(False)
         self.table.horizontalHeader().setVisible(False)

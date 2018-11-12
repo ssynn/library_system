@@ -59,6 +59,12 @@ class MainWindow(QWidget):
 
     # 注册按钮按下
     def signupFunction(self):
+        if self.signup.passwordInput.text() != self.signup.repPasswordInput.text():
+            print('密码不一致')
+            return
+        if not self.signup.maxNumInput.text().isalnum():
+            print('最大数量输入错误')
+            return
         for i in range(2, 9):
             item = self.signup.bodyLayout.itemAt(i).widget()
             if item.text() == item.initText:

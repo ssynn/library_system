@@ -8,61 +8,6 @@ CONFIG = {
 }
 
 
-def init_database(user: dict):
-    try:
-        conn = pymssql.connect(user['host'], user['user'], user['pwd'])
-        cursor = conn.cursor()
-        conn.autocommit(True)
-        cursor.execute('''CREATE DATABASE Library''')
-        conn.autocommit(False)
-        cursor.execute('''
-        USE Library
-        CREATE TABLE student(
-            SID char(15) PRIMARY KEY,
-            PASSWORD char(70),
-            SNAME ntext,
-            DEPARTMENT nchar(20),
-            MAJOR nchar(20),
-            MAX int
-        )
-        CREATE TABLE administrator(
-            AID char(15) PRIMARY KEY,
-            PASSWORD char(70)
-        )
-        CREATE TABLE book(
-            BID char(15) PRIMARY KEY,
-            BNAME ntext,
-            AUTHOR ntext,
-            PUBLICATION_DATE char(17),
-            PRESS nchar(20),
-            POSITION char(10),
-            SUM int,
-            NUM int
-        )
-        CREATE TABLE borrowing_book(
-            BID char(15),
-            SID char(15),
-            BORROW_DATE char(17),
-            DEADLINE char(17),
-            PUNISH int,
-            PRIMARY KEY(BID, SID)
-        )
-        CREATE TABLE log(
-            BID char(15),
-            SID char(15),
-            BORROW_DATE char(17),
-            BACK_DATE char(17),
-            PUNISHED int
-            PRIMARY KEY(BID, SID, BORROW_DATE)
-        )
-        ''')
-        conn.commit()
-    except Exception:
-        print('Init fall')
-    finally:
-        conn.close()
-
-
 def main():
     # with open('data/log', 'r+') as log:
     #     if(len(log.read()) == 0):

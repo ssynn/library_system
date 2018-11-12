@@ -84,6 +84,61 @@ def days_between(start: str, end: str):
     return e-s
 
 
+# 数据库初始化
+def init_database():
+    try:
+        conn = pymssql.connect(CONFIG['host'], CONFIG['user'], CONFIG['pwd'])
+        cursor = conn.cursor()
+        conn.autocommit(True)
+        cursor.execute('''CREATE DATABASE Library''')
+        conn.autocommit(False)
+        cursor.execute('''
+        USE Library
+        CREATE TABLE student(
+            SID char(15) PRIMARY KEY,
+            PASSWORD char(70),
+            SNAME ntext,
+            DEPARTMENT nchar(20),
+            MAJOR nchar(20),
+            MAX int
+        )
+        CREATE TABLE administrator(
+            AID char(15) PRIMARY KEY,
+            PASSWORD char(70)
+        )
+        CREATE TABLE book(
+            BID char(15) PRIMARY KEY,
+            BNAME ntext,
+            AUTHOR ntext,
+            PUBLICATION_DATE char(17),
+            PRESS nchar(20),
+            POSITION char(10),
+            SUM int,
+            NUM int
+        )
+        CREATE TABLE borrowing_book(
+            BID char(15),
+            SID char(15),
+            BORROW_DATE char(17),
+            DEADLINE char(17),
+            PUNISH int,
+            PRIMARY KEY(BID, SID)
+        )
+        CREATE TABLE log(
+            BID char(15),
+            SID char(15),
+            BORROW_DATE char(17),
+            BACK_DATE char(17),
+            PUNISHED int
+        )
+        ''')
+        conn.commit()
+    except Exception:
+        print('Init fall')
+    finally:
+        conn.close()
+
+
 # 注册
 def signup(user_message: dict) -> bool:
     '''
@@ -356,58 +411,40 @@ def delete_student(SID: str) -> bool:
 # 获取学生的借书信息
 def get_borrowing_books(ID: str, BID: bool = False) -> list:
     '''
-    当BID为False
-    传入学SID，返回此学生在借的书籍列表信息
-    [[BID, BNAME, BORROW_DATE, DEADLINE, PUNISH, NUM],[...],....]
-    当BID=True
-    传入BID，返回借此书的书籍列表信息
-    [[BID, SID, BORROW_DATE, DEADLINE, PUNISH],...]
+    当BID为False以SID的方式查找否则以BID查找
+    返回此学生在借的书籍列表信息
+    [[SID, BID, BNAME, BORROW_DATE, DEADLINE, PUNISH, NUM],[...],....]
     '''
     try:
         conn = pymssql.connect(CONFIG['host'], CONFIG['user'], CONFIG['pwd'], CONFIG['db'])
         cursor = conn.cursor()
         if ID == '' or ID == 'ID/姓名':
             cursor.execute('''
-                SELECT *
-                FROM borrowing_book
+                SELECT SID, book.BID, BNAME, BORROW_DATE, DEADLINE, PUNISH, NUM
+                FROM borrowing_book, book
+                WHERE book.BID=borrowing_book.BID
             ''')
-            res = cursor.fetchall()
-            temp = []
-            for i in res:
-                temp_ = []
-                for j in range(4):
-                    temp_.append(remove_zero(i[j]))
-                temp_.append(i[4])
-                temp.append(temp_)
         elif BID:
             cursor.execute('''
-                SELECT *
-                FROM borrowing_book
-                WHERE BID=%s
+                SELECT SID, book.BID, BNAME, BORROW_DATE, DEADLINE, PUNISH, NUM
+                FROM borrowing_book, book
+                WHERE book.BID=%s AND book.BID=borrowing_book.BID
             ''', (ID,))
-            res = cursor.fetchall()
-            temp = []
-            for i in res:
-                temp_ = []
-                for j in range(4):
-                    temp_.append(remove_zero(i[j]))
-                temp_.append(i[4])
-                temp.append(temp_)
         else:
             cursor.execute('''
-                SELECT book.BID, BNAME, BORROW_DATE, DEADLINE, PUNISH, NUM
+                SELECT SID, book.BID, BNAME, BORROW_DATE, DEADLINE, PUNISH, NUM
                 FROM borrowing_book, book
                 WHERE SID=%s AND book.BID=borrowing_book.BID
             ''', (ID,))
-            res = cursor.fetchall()
-            temp = []
-            for i in res:
-                temp_ = []
-                for j in range(4):
-                    temp_.append(remove_zero(i[j]))
-                temp_.append(i[4])
-                temp_.append(i[5])
-                temp.append(temp_)
+        res = cursor.fetchall()
+        temp = []
+        for i in res:
+            temp_ = []
+            for j in range(5):
+                temp_.append(remove_zero(i[j]))
+            temp_.append(i[5])
+            temp_.append(i[6])
+            temp.append(temp_)
         res = temp
     except Exception as e:
         print('get borrowing books error!')
@@ -415,7 +452,7 @@ def get_borrowing_books(ID: str, BID: bool = False) -> list:
         res = []
     finally:
         conn.close()
-        return temp
+        return res
 
 
 # 还书
@@ -503,18 +540,21 @@ def get_log(ID: str, BID: bool = False) -> list:
                 SELECT SID, book.BID, BNAME, BORROW_DATE, BACK_DATE, PUNISHED
                 FROM log, book
                 WHERE book.BID=log.BID
+                ORDER BY BACK_DATE
             ''')
         elif BID:
             cursor.execute('''
                 SELECT SID, book.BID, BNAME, BORROW_DATE, BACK_DATE, PUNISHED
                 FROM log, book
                 WHERE log.BID=%s AND book.BID=log.BID
+                ORDER BY BACK_DATE
             ''', (ID,))
         else:
             cursor.execute('''
                 SELECT SID, book.BID, BNAME, BORROW_DATE, BACK_DATE, PUNISHED
                 FROM log, book
                 WHERE SID=%s AND book.BID=log.BID
+                ORDER BY BACK_DATE
             ''', (ID,))
         res = cursor.fetchall()
     except Exception as e:
@@ -530,7 +570,6 @@ def get_log(ID: str, BID: bool = False) -> list:
                 temp_.append(remove_zero(i[j]))
             temp_.append(i[5])
             temp.append(temp_)
-        temp.sort(key=lambda x: x[4])
         return temp
 
 
@@ -746,7 +785,7 @@ def search_book(mes: str, SID: str = '') -> list:
             punish = False
             borrowing_book = get_borrowing_books(SID)
             for i in borrowing_book:
-                if i[3] < time.strftime("%Y-%m-%d-%H:%M"):
+                if i[4] < time.strftime("%Y-%m-%d-%H:%M"):
                     punish = True
                     break
             for book in res:
@@ -760,7 +799,7 @@ def search_book(mes: str, SID: str = '') -> list:
                     continue
                 # 判断受否有此书
                 for borrow in borrowing_book:
-                    if book[0] == borrow[0]:
+                    if book[0] == borrow[1]:
                         book.append('已借此书')
                         break
                 if book[-1] != '已借此书':
@@ -864,7 +903,7 @@ if __name__ == '__main__':
     # print(signup(temp))
 
     # 还书测试
-    print(get_borrowing_books('1', False))
+    print(get_borrowing_books('', True))
     # print(return_book('0001', '1'))
     # print(get_borrowing_books('1'))
 
@@ -881,7 +920,7 @@ if __name__ == '__main__':
     # print(borrow_book('2', '1'))
 
     # 获取借书日志测试
-    print(get_log('1', True))
+    # print(get_log('1', True))
 
     # 更新学生信息测试
     # print(update_student(user_message))
@@ -903,3 +942,6 @@ if __name__ == '__main__':
 
     # 删除学生
     # print(delete_student('3'))
+
+    # 初始化数据库
+    # init_database()
