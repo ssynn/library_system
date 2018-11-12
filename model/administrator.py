@@ -250,7 +250,7 @@ class BookManage(QGroupBox):
         self.searchButton.setText('搜索')
         self.searchButton.clicked.connect(self.searchFunction)
         self.addNewBookButton = QToolButton()
-        self.addNewBookButton.setFixedSize(120, 40)       
+        self.addNewBookButton.setFixedSize(120, 40)
         self.addNewBookButton.setText('插入新书')
         self.addNewBookButton.clicked.connect(self.addNewBookFunction)
         searchLayout = QHBoxLayout()
