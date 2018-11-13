@@ -16,39 +16,59 @@
 
 ## 使用注意
 
-1. 需要SQL作为数据库的依赖
+1. 需要SQL server作为数据库的依赖
 2. 数据库默认连接方式为TCP/IP sa账户 密码123456 连接配置在model/database文件里改
 
 ## 截图
 
-* 登录
+### 登录
 
 <img src="https://github.com/ssynn/library_system/blob/master/screenshots/signin.png" width="100%" height="100%">
 
-* 注册
+### 注册
 
 <img src="https://github.com/ssynn/library_system/blob/master/screenshots/signup.png" width="100%" height="100%">
 
-* 管理员
+### 管理员
+
+* 图书管理
 
 <img src="https://github.com/ssynn/library_system/blob/master/screenshots/1.png" width="100%" height="100%">
 
+* 插入新书
+
 <img src="https://github.com/ssynn/library_system/blob/master/screenshots/2.png" width="100%" height="100%">
+
+* 用户管理
 
 <img src="https://github.com/ssynn/library_system/blob/master/screenshots/3.png" width="100%" height="100%">
 
+* 修改用户信息
+
 <img src="https://github.com/ssynn/library_system/blob/master/screenshots/4.png" width="100%" height="100%">
+
+* 借阅管理
 
 <img src="https://github.com/ssynn/library_system/blob/master/screenshots/5.png" width="100%" height="100%">
 
+* 借阅日志管理
+
 <img src="https://github.com/ssynn/library_system/blob/master/screenshots/6.png" width="100%" height="100%">
 
-* 学生
+### 学生
+
+* 图书查询
 
 <img src="https://github.com/ssynn/library_system/blob/master/screenshots/s1.png" width="100%" height="100%">
 
+* 借阅管理
+
 <img src="https://github.com/ssynn/library_system/blob/master/screenshots/s2.png" width="100%" height="100%">
 
+* 日志查询
+
 <img src="https://github.com/ssynn/library_system/blob/master/screenshots/s3.png" width="100%" height="100%">
+
+* 个人信息管理
 
 <img src="https://github.com/ssynn/library_system/blob/master/screenshots/s4.png" width="100%" height="100%">
