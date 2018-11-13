@@ -226,7 +226,7 @@ class Books(QGroupBox):
     # 标题栏
     def setTitleBar(self):
         self.title = QLabel()
-        self.title.setText('书籍信息信息')
+        self.title.setText('书籍信息')
         self.title.setFixedHeight(25)
         titleLayout = QHBoxLayout()
         titleLayout.addSpacing(50)
