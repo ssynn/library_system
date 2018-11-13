@@ -45,10 +45,10 @@
 
 * 学生
 
-<img src="https://github.com/ssynn/library_system/blob/master/screenshots/1.png" width="100%" height="100%">
+<img src="https://github.com/ssynn/library_system/blob/master/screenshots/s1.png" width="100%" height="100%">
 
-<img src="https://github.com/ssynn/library_system/blob/master/screenshots/2.png" width="100%" height="100%">
+<img src="https://github.com/ssynn/library_system/blob/master/screenshots/s2.png" width="100%" height="100%">
 
-<img src="https://github.com/ssynn/library_system/blob/master/screenshots/3.png" width="100%" height="100%">
+<img src="https://github.com/ssynn/library_system/blob/master/screenshots/s3.png" width="100%" height="100%">
 
-<img src="https://github.com/ssynn/library_system/blob/master/screenshots/4.png" width="100%" height="100%">
+<img src="https://github.com/ssynn/library_system/blob/master/screenshots/s4.png" width="100%" height="100%">
