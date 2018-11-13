@@ -136,8 +136,9 @@ def init_database():
         VALUES('admin', '123456')
         ''')
         conn.commit()
-    except Exception:
-        print('Init fall')
+    except Exception as e:
+        print('Init fall 如果数据库已经成功初始化则无视此条警告')
+        print(e)
     finally:
         conn.close()
 

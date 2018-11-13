@@ -1,9 +1,10 @@
 import sys
 from PyQt5.QtWidgets import QApplication
-from model import main_widget
+from model import main_widget, database
 
 
 def main():
+    database.init_database()
     app = QApplication(sys.argv)
     ex = main_widget.MainWindow()
     sys.exit(app.exec_())
