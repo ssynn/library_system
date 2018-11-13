@@ -7,8 +7,8 @@ from PyQt5.QtWidgets import (QApplication, QWidget, QGridLayout, QGroupBox,
                              QLineEdit, QFileDialog, QToolTip)
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtCore import Qt, QSize
-# from model import database
-import database
+from model import database
+# import database
 
 
 class StudentPage(QWidget):

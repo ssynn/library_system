@@ -1,15 +1,15 @@
 import sys
 from PyQt5.QtWidgets import (QApplication, QWidget)
-# from model import login
-# from model import signup
-# from model import database
-# form model import student
-# from model import administrator
-import login
-import signup
-import database
-import student
-import administrator
+from model import login
+from model import signup
+from model import database
+from model import student
+from model import administrator
+# import login
+# import signup
+# import database
+# import student
+# import administrator
 
 
 class MainWindow(QWidget):

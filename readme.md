@@ -14,6 +14,11 @@
 3. 能统计出某图书的总借出数量与库存量及某学生借书总数，当天为止总罚金等。
 4. 其他必要的查询、统计功能。
 
+## 使用注意
+
+1. 需要SQL作为数据库的依赖
+2. 数据库默认连接方式为TCP/IP sa账户 密码123456 连接配置在model/database文件里改
+
 ## 截图
 
 * 登录
@@ -26,24 +31,24 @@
 
 * 管理员
 
-<img src="https://github.com/ssynn/library_system/tree/master/screenshots/admin/1.png" width="100%" height="100%">
+<img src="https://github.com/ssynn/library_system/blob/master/screenshots/1.png" width="100%" height="100%">
 
-<img src="https://github.com/ssynn/library_system/tree/master/screenshots/admin/2.png" width="100%" height="100%">
+<img src="https://github.com/ssynn/library_system/blob/master/screenshots/2.png" width="100%" height="100%">
 
-<img src="https://github.com/ssynn/library_system/tree/master/screenshots/admin/3.png" width="100%" height="100%">
+<img src="https://github.com/ssynn/library_system/blob/master/screenshots/3.png" width="100%" height="100%">
 
-<img src="https://github.com/ssynn/library_system/tree/master/screenshots/admin/4.png" width="100%" height="100%">
+<img src="https://github.com/ssynn/library_system/blob/master/screenshots/4.png" width="100%" height="100%">
 
-<img src="https://github.com/ssynn/library_system/tree/master/screenshots/admin/5.png" width="100%" height="100%">
+<img src="https://github.com/ssynn/library_system/blob/master/screenshots/5.png" width="100%" height="100%">
 
-<img src="https://github.com/ssynn/library_system/tree/master/screenshots/admin/6.png" width="100%" height="100%">
+<img src="https://github.com/ssynn/library_system/blob/master/screenshots/6.png" width="100%" height="100%">
 
 * 学生
 
-<img src="https://github.com/ssynn/library_system/tree/master/screenshots/student/1.png" width="100%" height="100%">
+<img src="https://github.com/ssynn/library_system/blob/master/screenshots/1.png" width="100%" height="100%">
 
-<img src="https://github.com/ssynn/library_system/tree/master/screenshots/student/2.png" width="100%" height="100%">
+<img src="https://github.com/ssynn/library_system/blob/master/screenshots/2.png" width="100%" height="100%">
 
-<img src="https://github.com/ssynn/library_system/tree/master/screenshots/student/3.png" width="100%" height="100%">
+<img src="https://github.com/ssynn/library_system/blob/master/screenshots/3.png" width="100%" height="100%">
 
-<img src="https://github.com/ssynn/library_system/tree/master/screenshots/student/4.png" width="100%" height="100%">
+<img src="https://github.com/ssynn/library_system/blob/master/screenshots/4.png" width="100%" height="100%">

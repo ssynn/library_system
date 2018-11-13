@@ -1,6 +1,0 @@
-, 150)
-        self.table.setColumnWidth(1, 150)
-        self.table.setColumnWidth(2, 175)
-        self.table.setColumnWidth(3, 175)
-        self.table.setColumnWidth(4, 100)
-        self.table.setColumnWidth(5, 150)

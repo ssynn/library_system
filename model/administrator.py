@@ -7,11 +7,12 @@ from PyQt5.QtWidgets import (QApplication, QWidget, QGridLayout, QGroupBox,
                              QLineEdit, QFileDialog, QMessageBox)
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtCore import Qt, QSize
-# from model import database
-# from model import student_information
-import database
-import student_information
-import book_information
+from model import database
+from model import student_information
+from model import book_information
+# import database
+# import student_information
+# import book_information
 
 
 class AdministratorPage(QWidget):

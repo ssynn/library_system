@@ -3,8 +3,8 @@ from PyQt5.QtWidgets import (
     QApplication, QVBoxLayout, QLabel, QLineEdit, QToolButton, QGroupBox, QMessageBox)
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QIcon
-# from model import database
-import database
+from model import database
+# import database
 
 
 class StudentInfo(QGroupBox):

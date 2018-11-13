@@ -131,6 +131,9 @@ def init_database():
             BACK_DATE char(17),
             PUNISHED int
         )
+        INSERT
+        INTO administrator
+        VALUES('admin', '123456')
         ''')
         conn.commit()
     except Exception:
