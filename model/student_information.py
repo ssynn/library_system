@@ -150,9 +150,9 @@ class StudentInfo(QGroupBox):
                 msgBox.exec_()
                 return
             self.stu_info['PASSWORD'] = database.encrypt(self.passwordInput.text())
-        self.stu_info['SNAME'] = self.nameInput.text(),
-        self.stu_info['DEPARTMENT'] = self.deptInput.text(),
-        self.stu_info['MAJOR'] = self.majorInput.text(),
+        self.stu_info['SNAME'] = self.nameInput.text()
+        self.stu_info['DEPARTMENT'] = self.deptInput.text()
+        self.stu_info['MAJOR'] = self.majorInput.text()
         self.stu_info['MAX'] = int(self.maxNumInput.text())
         self.close()
         self.after_close.emit(self.stu_info)

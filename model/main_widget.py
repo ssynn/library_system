@@ -20,7 +20,6 @@ class MainWindow(QWidget):
         self.setGeometry(200, 200, 1280, 720)
         self.setFixedSize(1280, 720)
         self.setMyStyle()
-        self.show()
 
     # 创建登录菜单
     def setLogin(self):

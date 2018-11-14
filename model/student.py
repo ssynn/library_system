@@ -888,9 +888,9 @@ class Detial(QWidget):
             return
         if self.passwordInput.text() != '******':
             self.stu_mes['PASSWORD'] = database.encrypt(self.passwordInput.text())
-        self.stu_mes['SNAME'] = self.nameInput.text(),
-        self.stu_mes['DEPARTMENT'] = self.deptInput.text(),
-        self.stu_mes['MAJOR'] = self.majorInput.text(),
+        self.stu_mes['SNAME'] = self.nameInput.text()
+        self.stu_mes['DEPARTMENT'] = self.deptInput.text()
+        self.stu_mes['MAJOR'] = self.majorInput.text()
         self.stu_mes['MAX'] = int(self.maxNumInput.text())
         if not database.update_student(self.stu_mes):
             print('更新失败')

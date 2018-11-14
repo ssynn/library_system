@@ -764,17 +764,17 @@ class BorrowManage(QWidget):
 
     # 设置表格
     def setTable(self, val: dict = None):
-        self.table = QTableWidget(1, 6)
+        self.table = QTableWidget(1, 7)
         self.table.setContentsMargins(10, 10, 10, 10)
         self.table.setFixedHeight(500)
         self.table.verticalHeader().setVisible(False)
         self.table.horizontalHeader().setVisible(False)
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.table.setFocusPolicy(Qt.NoFocus)
-        self.table.setColumnWidth(0, 150)
-        self.table.setColumnWidth(1, 150)
-        self.table.setColumnWidth(2, 175)
-        self.table.setColumnWidth(3, 175)
+        self.table.setColumnWidth(2, 120)
+        self.table.setColumnWidth(1, 120)
+        self.table.setColumnWidth(4, 170)
+        self.table.setColumnWidth(3, 170)
 
         self.table.setItem(0, 0, QTableWidgetItem('学生号'))
         self.table.setItem(0, 1, QTableWidgetItem('书号'))
@@ -784,7 +784,7 @@ class BorrowManage(QWidget):
         self.table.setItem(0, 5, QTableWidgetItem('罚金'))
         self.table.setItem(0, 6, QTableWidgetItem('操作'))
 
-        for i in range(6):
+        for i in range(7):
             self.table.item(0, i).setTextAlignment(Qt.AlignCenter)
             self.table.item(0, i).setFont(QFont('微软雅黑', 15))
         for i in self.borrow_list:
@@ -847,12 +847,13 @@ class BorrowManage(QWidget):
         itemWidget.setLayout(itemLayout)
 
         self.table.insertRow(1)
-        self.table.setItem(1, 0, itemBID)
-        self.table.setItem(1, 1, itemNAME)
-        self.table.setItem(1, 2, itemBEGIN)
-        self.table.setItem(1, 3, itemBACK)
-        self.table.setCellWidget(1, 4, itemPUNISHED)
-        self.table.setCellWidget(1, 5, itemWidget)
+        self.table.setItem(1, 0, itemSID)
+        self.table.setItem(1, 1, itemBID)
+        self.table.setItem(1, 2, itemNAME)
+        self.table.setItem(1, 3, itemBEGIN)
+        self.table.setItem(1, 4, itemBACK)
+        self.table.setCellWidget(1, 5, itemPUNISHED)
+        self.table.setCellWidget(1, 6, itemWidget)
 
     def retrurnBook(self, SID: str, BID: str, isPunished: int):
         if isPunished > 0:

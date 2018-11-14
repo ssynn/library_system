@@ -760,7 +760,7 @@ def search_book(mes: str, SID: str = '') -> list:
             FROM book
             ''')
         else:
-            # 先把借书日期，书本剩余数量，罚金等信息找出
+            # 一条条匹配
             cursor.executemany('''
             SELECT *
             FROM book
@@ -768,6 +768,8 @@ def search_book(mes: str, SID: str = '') -> list:
             ''', val)
 
         res = cursor.fetchall()
+
+        # 元组转列表
         temp = []
         for i in res:
             temp_ = []
@@ -780,14 +782,17 @@ def search_book(mes: str, SID: str = '') -> list:
 
         # 匹配学生信息判断每一本书是否可借
         if SID != '':
+            # 获得学生最大借书数
             cursor.execute('''
             SELECT MAX
             FROM student
             WHERE SID=%s
             ''', (SID))
             max_num = cursor.fetchall()[0][0]
-            punish = False
+            # 获取已经借阅的书的列表
             borrowing_book = get_borrowing_books(SID)
+            # 判断是否有罚金
+            punish = False
             for i in borrowing_book:
                 if i[4] < time.strftime("%Y-%m-%d-%H:%M"):
                     punish = True
@@ -801,7 +806,10 @@ def search_book(mes: str, SID: str = '') -> list:
                 if len(borrowing_book) >= max_num:
                     book.append('借书达上限')
                     continue
-                # 判断受否有此书
+                if book[-1] == 0:
+                    book.append('没有剩余')
+                    continue
+                # 判断是否有此书
                 for borrow in borrowing_book:
                     if book[0] == borrow[1]:
                         book.append('已借此书')

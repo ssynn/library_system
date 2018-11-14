@@ -7,6 +7,7 @@ def main():
     database.init_database()
     app = QApplication(sys.argv)
     ex = main_widget.MainWindow()
+    ex.show()
     sys.exit(app.exec_())
 
 
