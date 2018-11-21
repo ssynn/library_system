@@ -5,7 +5,7 @@ from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QIcon
 
 KEY_LIST = ['BID', 'BNAME', 'AUTHOR',
-            'PUBLICATION_DATE', 'PRESS', 'POSITION', 'SUM']
+            'PUBLICATION_DATE', 'PRESS', 'POSITION', 'SUM', 'CLASSIFICATION']
 
 
 class BookInfo(QGroupBox):
@@ -18,7 +18,8 @@ class BookInfo(QGroupBox):
         'PUBLICATION_DATE': str,
         'PRESS': str,
         'POSITION': str,
-        'SUM': int
+        'SUM': int,
+        'CLASSIFICATION': str
     }
     '''
     after_close = pyqtSignal(dict)
@@ -35,7 +36,8 @@ class BookInfo(QGroupBox):
                 'PUBLICATION_DATE': '请输入出版日期',
                 'PRESS': '请输入出版社',
                 'POSITION': '请输入存放位置',
-                'SUM': '请输入数量'
+                'SUM': '请输入数量',
+                'CLASSIFICATION': '请输入分类, 以空格区分'
             }
 
         self.title = QLabel()
@@ -96,6 +98,13 @@ class BookInfo(QGroupBox):
         self.POSITIONInput.initText = '请输入存放位置'
         self.POSITIONInput.mousePressEvent = lambda x: self.inputClick(self.POSITIONInput)
 
+        # 分类
+        self.CLASSIFICATIONInput = QLineEdit()
+        self.CLASSIFICATIONInput.setFixedSize(400, 40)
+        self.CLASSIFICATIONInput.setText(self.book_msg['CLASSIFICATION'])
+        self.CLASSIFICATIONInput.initText = '请输入分类, 以空格区分'
+        self.CLASSIFICATIONInput.mousePressEvent = lambda x: self.inputClick(self.CLASSIFICATIONInput)
+
         # 提交
         self.submit = QToolButton()
         self.submit.setText('提交')
@@ -115,7 +124,8 @@ class BookInfo(QGroupBox):
             self.DATEInput,
             self.PRESSInput,
             self.POSITIONInput,
-            self.NumInput
+            self.NumInput,
+            self.CLASSIFICATIONInput
         ]
 
         self.bodyLayout = QVBoxLayout()
@@ -130,8 +140,7 @@ class BookInfo(QGroupBox):
         self.initUI()
 
     def inputClick(self, e):
-        for i in range(2, 9):
-            item = self.bodyLayout.itemAt(i).widget()
+        for item in self.btnList:
             if item.text() == '':
                 item.setText(item.initText)
         if e.text() == e.initText:
@@ -151,7 +160,7 @@ class BookInfo(QGroupBox):
         self.after_close.emit(self.book_msg)
 
     def initUI(self):
-        self.setFixedSize(422, 500)
+        self.setFixedSize(422, 550)
         self.setWindowTitle('编辑书本')
         self.setWindowIcon(QIcon('icon/book.png'))
         self.setMyStyle()
@@ -200,7 +209,8 @@ if __name__ == '__main__':
                 'PUBLICATION_DATE': '2009-05',
                 'PRESS': '电子出版社',
                 'POSITION': 'C05',
-                'SUM': 5
+                'SUM': 5,
+                'CLASSIFICATION': 'aasd asd asd ad '
             }
     app = QApplication(sys.argv)
     ex = BookInfo(book_msg)

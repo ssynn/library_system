@@ -14,7 +14,7 @@ CONFIG = {
 
 
 # 去掉字符串末尾的0
-def remove_zero(val):
+def remove_blank(val):
     while len(val) != 0 and val[-1] == ' ':
         val = val[:-1]
     return val
@@ -29,28 +29,17 @@ def convert(val: list):
     if len(val) == 5:
         ans = {
             'class': 'stu',
-            'SID': remove_zero(val[0]),
-            'SNAME': remove_zero(val[1]),
-            'DEPARTMENT': remove_zero(val[2]),
-            'MAJOR': remove_zero(val[3]),
+            'SID': remove_blank(val[0]),
+            'SNAME': remove_blank(val[1]),
+            'DEPARTMENT': remove_blank(val[2]),
+            'MAJOR': remove_blank(val[3]),
             'MAX': val[4]
         }
     else:
         ans = {
             'class': 'admin',
-            'AID': remove_zero(val[0])
+            'AID': remove_blank(val[0])
         }
-    return ans
-
-
-# 把书的元组列表转换为字典
-def convert_book(val: tuple) -> dict:
-    key_list = ['BID', 'BNAME', 'AUTHOR', 'PUBLICATION_DATE', 'PRESS', 'POSITION', 'SUM', 'NUM']
-    ans = {}
-    for i, key in zip(val, key_list):
-        ans[key] = i
-        if type(i) is not int:
-            ans[key] = remove_zero(i)
     return ans
 
 
@@ -364,7 +353,7 @@ def search_student(info: str):
         for i in res:
             temp_ = []
             for j in range(4):
-                temp_.append(remove_zero(i[j]))
+                temp_.append(remove_blank(i[j]))
             temp_.append(i[4])
             temp.append(temp_)
         res = temp
@@ -450,7 +439,7 @@ def get_borrowing_books(ID: str, BID: bool = False) -> list:
         for i in res:
             temp_ = []
             for j in range(5):
-                temp_.append(remove_zero(i[j]))
+                temp_.append(remove_blank(i[j]))
             temp_.append(i[5])
             temp_.append(i[6])
             temp.append(temp_)
@@ -576,7 +565,7 @@ def get_log(ID: str, BID: bool = False) -> list:
         for i in res:
             temp_ = []
             for j in range(5):
-                temp_.append(remove_zero(i[j]))
+                temp_.append(remove_blank(i[j]))
             temp_.append(i[5])
             temp.append(temp_)
         return temp
@@ -593,7 +582,8 @@ def new_book(book_info: dict) -> bool:
         'PUBLICATION_DATE': str,
         'PRESS': str,
         'POSITION': str,
-        'SUM': int
+        'SUM': int,
+        'CLASSIFICATION': str
     }
     返回bool
     '''
@@ -608,6 +598,7 @@ def new_book(book_info: dict) -> bool:
             ''', (book_info['BID']))
         if len(cursor.fetchall()) != 0:
             raise Exception('书ID已存在!')
+        # 插入新书
         cursor.execute('''
         INSERT
         INTO book
@@ -622,6 +613,19 @@ def new_book(book_info: dict) -> bool:
             book_info['SUM'],
             book_info['SUM']
         ))
+
+        # 处理书本分类
+        classifications = book_info['CLASSIFICATION']
+        classifications = classifications.split()
+        classifications = list(set(classifications))
+        classifications = [(book_info['BID'], i) for i in classifications]
+        # 插入分类
+        cursor.executemany('''
+        INSERT
+        INTO classification
+        VALUES(%s, %s)
+        ''', classifications)
+
         conn.commit()
     except Exception as e:
         print('add book error!')
@@ -644,12 +648,14 @@ def get_book_info(BID: str) -> dict:
         'PRESS': str,
         'POSITION': str,
         'SUM': int,
-        'NUM': int
+        'NUM': int,
+        'CLASSIFICATION': str
     }
     '''
     try:
         conn = pymssql.connect(CONFIG['host'], CONFIG['user'], CONFIG['pwd'], CONFIG['db'])
         cursor = conn.cursor()
+        # 获取book表内的书本信息
         cursor.execute('''
             SELECT *
             FROM book
@@ -658,14 +664,32 @@ def get_book_info(BID: str) -> dict:
         res = cursor.fetchall()
         if len(res) == 0:
             raise Exception('查无此书')
+
+        # 获取分类
+        cursor.execute('''
+        SELECT CLASSIFICATION
+        FROM classification
+        WHERE BID=%s
+        ''', (BID))
+        CLASSIFICATION = ''
+        for i in cursor.fetchall():
+            CLASSIFICATION += (remove_blank(i[0]) + ' ')
+        # 把列表转换为字典
+        res = list(res[0])
+        res.append(CLASSIFICATION)
+        key_list = ['BID', 'BNAME', 'AUTHOR', 'PUBLICATION_DATE', 'PRESS', 'POSITION', 'SUM', 'NUM', 'CLASSIFICATION']
+        ans = {}
+        for i, key in zip(res, key_list):
+            ans[key] = i
+            if type(i) is not int:
+                ans[key] = remove_blank(i)
+        res = ans
     except Exception as e:
         print('get book info error!')
         print(e)
         res = None
     finally:
         conn.close()
-        if res is not None:
-            res = convert_book(res[0])
         return res
 
 
@@ -681,7 +705,8 @@ def update_book(book_info: dict) -> bool:
         'PRESS': str,
         'POSITION': str,
         'SUM': int,
-        'NUM': int
+        'NUM': int,
+        'CLASSIFICATION': str
     }
     返回bool
     '''
@@ -689,6 +714,7 @@ def update_book(book_info: dict) -> bool:
         res = True
         conn = pymssql.connect(CONFIG['host'], CONFIG['user'], CONFIG['pwd'], CONFIG['db'])
         cursor = conn.cursor()
+        # 更新book表
         cursor.execute('''
             UPDATE book
             SET BNAME=%s, AUTHOR=%s, PUBLICATION_DATE=%s, PRESS=%s, POSITION=%s, SUM=%d, NUM=%d
@@ -703,6 +729,24 @@ def update_book(book_info: dict) -> bool:
                 book_info['NUM'],
                 book_info['BID']
             ))
+
+        # 更新classification表
+        cursor.execute('''
+        DELETE
+        FROM classification
+        WHERE BID=%s''', (book_info['BID']))
+        # 处理书本分类
+        classifications = book_info['CLASSIFICATION']
+        classifications = classifications.split()
+        classifications = list(set(classifications))
+        classifications = [(book_info['BID'], i) for i in classifications]
+        # 插入分类
+        cursor.executemany('''
+        INSERT
+        INTO classification
+        VALUES(%s, %s)
+        ''', classifications)
+
         conn.commit()
     except Exception as e:
         print('Update book error!')
@@ -718,7 +762,7 @@ def delete_book(BID: str) -> bool:
     '''
     传入BID
     返回bool
-    会删除book，borrowing_book，log表内所有对应的记录
+    会删除book，borrowing_book，log, classification 表内所有对应的记录
     '''
     try:
         res = True
@@ -734,7 +778,10 @@ def delete_book(BID: str) -> bool:
             DELETE
             FROM log
             WHERE BID=%s
-            ''', (BID, BID, BID))
+            DELETE
+            FROM classification
+            WHERE BID=%s
+            ''', (BID, BID, BID, BID))
         conn.commit()
     except Exception as e:
         print('delete book error!')
@@ -779,7 +826,7 @@ def search_book(mes: str, SID: str = '') -> list:
         for i in res:
             temp_ = []
             for j in range(6):
-                temp_.append(remove_zero(i[j]))
+                temp_.append(remove_blank(i[j]))
             temp_.append(i[6])
             temp_.append(i[7])
             temp.append(temp_)
@@ -887,7 +934,7 @@ def encrypt(val):
 
 if __name__ == '__main__':
     temp = {
-        'SID': '201602',
+        'SID': '201603',
         'PASSWORD': '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92',
         'SNAME': '小王',
         'DEPARTMENT': '数学与信息科学学院',
@@ -908,19 +955,20 @@ if __name__ == '__main__':
         'PASSWORD': '4fc82b26aecb47d2868c4efbe3581732a3e7cbcc6c2efb32062c08170a05eeb8'
     }
     book_msg = {
-                'BID': '4',
+                'BID': '444',
                 'BNAME': 'Java',
                 'AUTHOR': 'kak',
                 'PUBLICATION_DATE': '2009-05',
                 'PRESS': '电子出版社',
                 'POSITION': 'C05',
-                'SUM': 5
+                'SUM': 5,
+                'CLASSIFICATION': 'a s ad das d'
             }
     # 注册测试
     # print(signup(temp))
 
     # 还书测试
-    print(get_borrowing_books('', True))
+    # print(get_borrowing_books('', True))
     # print(return_book('0001', '1'))
     # print(get_borrowing_books('1'))
 
@@ -946,7 +994,7 @@ if __name__ == '__main__':
     # print(new_book(book_msg))
 
     # 获取书本详细信息
-    # print(get_book_info('7'))
+    print(get_book_info('444'))
 
     # 删除书籍
     # print(delete_book('3'))

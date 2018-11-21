@@ -50,9 +50,17 @@
 
 * 附加需求
   * 加入分类
-    * 在编辑里设置分类(book_infomation, new_book, update_book, search_book, delete_book, get_book_info)
+    * ~~在编辑里设置分类~~
+    * ~~book_infomation~~
+    * ~~new_book~~
+    * ~~update_book~~
+    * search_book
+    * ~~delete_book~~
+    * ~~get_book_info~~
   * 搜索细化
-    * 加入下拉框(BookManager, search_book)
+    * ~~加入下拉框~~
+    * ~~BookManager~~
+    * ~~search_book~~
   * 统计视图
     * 今日登录人数
     * 今日借书借书量
