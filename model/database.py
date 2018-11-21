@@ -131,6 +131,11 @@ def init_database():
             BACK_DATE char(17),
             PUNISHED int
         )
+        CREATE TABLE classification(
+            BID char(15),
+            CLASSIFICATION nchar(15),
+            PRIMARY KEY(BID, CLASSIFICATION)
+        )
         INSERT
         INTO administrator
         VALUES('admin', '123456')

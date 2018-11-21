@@ -35,3 +35,9 @@
 | <u>BID</u> | <u>SID</u> | <u>BORROW_DATE</u> | BACK_DATE | PUNISHED |
 |:-:|:-:|:-:|:-:|:-:|
 | char(15) | char(15) | char(12) | char(20) | int |
+
+## classification
+
+| <u>BID</u> | <u>CLASSIFICATION</u> |
+|:-:|:-:|
+| char(15) | nchar(15) |
