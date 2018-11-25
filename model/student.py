@@ -4,7 +4,7 @@ import os
 from PyQt5.QtWidgets import (QApplication, QWidget, QGridLayout, QGroupBox,
                              QToolButton, QSplitter, QVBoxLayout, QHBoxLayout,
                              QLabel, QTableWidget, QTableWidgetItem, QAbstractItemView,
-                             QLineEdit, QFileDialog, QToolTip)
+                             QLineEdit, QFileDialog, QToolTip, QComboBox)
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtCore import Qt, QSize
 from model import database
@@ -238,10 +238,13 @@ class Books(QGroupBox):
 
     # 设置搜索框
     def setSearchBar(self):
+        self.selectBox = QComboBox()
+        self.selectBox.addItems(['书号', '分类', '出版社', '作者', '书名'])
+        self.selectBox.setFixedHeight(30)
         self.searchTitle = QLabel()
         self.searchTitle.setText('搜索书籍')
         self.searchInput = QLineEdit()
-        self.searchInput.setText('ID/书名/作者/出版社')
+        self.searchInput.setText('')
         self.searchInput.setClearButtonEnabled(True)
         self.searchInput.setFixedSize(400, 40)
         self.searchButton = QToolButton()
@@ -250,6 +253,7 @@ class Books(QGroupBox):
         self.searchButton.clicked.connect(self.searchFunction)
         searchLayout = QHBoxLayout()
         searchLayout.addStretch()
+        searchLayout.addWidget(self.selectBox)
         searchLayout.addWidget(self.searchTitle)
         searchLayout.addWidget(self.searchInput)
         searchLayout.addWidget(self.searchButton)
@@ -260,7 +264,8 @@ class Books(QGroupBox):
 
     # 搜索方法
     def searchFunction(self):
-        self.book_list = database.search_book(self.searchInput.text(), self.stu_mes['SID'])
+        convert = {'书号': 'BID', '分类': 'CLASSIFICATION', '出版社': 'PRESS', '作者': 'AUTHOR', '书名': 'BNAME', '': 'BNAME'}
+        self.book_list = database.search_book(self.searchInput.text(), convert[self.selectBox.currentText()], self.stu_mes['SID'])
         if self.book_list == []:
             print('未找到')
         if self.table is not None:
@@ -269,23 +274,30 @@ class Books(QGroupBox):
 
     # 设置表格
     def setTable(self):
-        self.table = QTableWidget(1, 8)
+        self.table = QTableWidget(1, 9)
         self.table.setContentsMargins(10, 10, 10, 10)
         self.table.verticalHeader().setVisible(False)
         self.table.horizontalHeader().setVisible(False)
         self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.table.setFocusPolicy(Qt.NoFocus)
+        self.table.setColumnWidth(0, 80)
+        # self.table.setColumnWidth(1, 150)
+        # self.table.setColumnWidth(2, 125)
+        # self.table.setColumnWidth(3, 125)
+        # self.table.setColumnWidth(4, 100)
+        self.table.setColumnWidth(6, 80)
 
         self.table.setItem(0, 0, QTableWidgetItem('书号'))
         self.table.setItem(0, 1, QTableWidgetItem('书名'))
         self.table.setItem(0, 2, QTableWidgetItem('作者'))
         self.table.setItem(0, 3, QTableWidgetItem('出版日期'))
         self.table.setItem(0, 4, QTableWidgetItem('出版社'))
-        self.table.setItem(0, 5, QTableWidgetItem('位置'))
-        self.table.setItem(0, 6, QTableWidgetItem('总数/剩余'))
-        self.table.setItem(0, 7, QTableWidgetItem('操作'))
+        self.table.setItem(0, 5, QTableWidgetItem('分类'))
+        self.table.setItem(0, 6, QTableWidgetItem('位置'))
+        self.table.setItem(0, 7, QTableWidgetItem('总数/剩余'))
+        self.table.setItem(0, 8, QTableWidgetItem('操作'))
 
-        for i in range(8):
+        for i in range(9):
             self.table.item(0, i).setTextAlignment(Qt.AlignCenter)
             self.table.item(0, i).setFont(QFont('微软雅黑', 15))
 
@@ -316,6 +328,9 @@ class Books(QGroupBox):
 
         itemSUM = QTableWidgetItem(str(val[6])+'/'+str(val[7]))
         itemSUM.setTextAlignment(Qt.AlignCenter)
+
+        itemCLASSIFICATION = QTableWidgetItem(val[8])
+        itemCLASSIFICATION.setTextAlignment(Qt.AlignCenter)
 
         itemOPERATE = QToolButton(self.table)
         itemOPERATE.setFixedSize(70, 25)
@@ -364,9 +379,10 @@ class Books(QGroupBox):
         self.table.setItem(1, 2, itemAUTHOR)
         self.table.setItem(1, 3, itemDATE)
         self.table.setItem(1, 4, itemPRESS)
-        self.table.setItem(1, 5, itemPOSITION)
-        self.table.setItem(1, 6, itemSUM)
-        self.table.setCellWidget(1, 7, itemWidget)
+        self.table.setItem(1, 5, itemCLASSIFICATION)
+        self.table.setItem(1, 6, itemPOSITION)
+        self.table.setItem(1, 7, itemSUM)
+        self.table.setCellWidget(1, 8, itemWidget)
 
     def borrowBook(self, BID: str):
         ans = database.borrow_book(BID, self.stu_mes['SID'])
@@ -415,6 +431,14 @@ class Books(QGroupBox):
                 font-size: 25px;
                 font-family: 微软雅黑;
             }
+        ''')
+        self.selectBox.setStyleSheet('''
+        *{
+            border: 0px;
+        }
+        QComboBox{
+            border: 1px solid rgba(201, 201, 201, 1);
+        }
         ''')
 
 

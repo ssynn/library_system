@@ -15,9 +15,27 @@ CONFIG = {
 
 # 去掉字符串末尾的0
 def remove_blank(val):
+    if type(val) is not str:
+        return val
     while len(val) != 0 and val[-1] == ' ':
         val = val[:-1]
     return val
+
+
+# 把book元组转换为list
+def tuple_to_list(val: list):
+    '''
+    传入tuple列表把里面的tuple都转换为list同时去掉字符串里的空格
+    '''
+    ans = []
+    for tuple_ in val:
+        temp = []
+        for item in tuple_:
+            temp.append(item)
+            if type(temp[-1]) is str:
+                temp[-1] = remove_blank(temp[-1])
+        ans.append(temp)
+    return ans
 
 
 # 将元组列表转换为字典
@@ -321,7 +339,7 @@ def get_student_info(SID: str) -> dict:
 
 
 # 查找学生
-def search_student(info: str):
+def search_student(info: str) -> list:
     '''
     传入SID或学生姓名进行查找
     返回[[SID, SNAME, DEPARTMENT, MAJOR, MAX],...]
@@ -352,9 +370,8 @@ def search_student(info: str):
         temp = []
         for i in res:
             temp_ = []
-            for j in range(4):
-                temp_.append(remove_blank(i[j]))
-            temp_.append(i[4])
+            for j in i:
+                temp_.append(remove_blank(j))
             temp.append(temp_)
         res = temp
     except Exception as e:
@@ -438,10 +455,8 @@ def get_borrowing_books(ID: str, BID: bool = False) -> list:
         temp = []
         for i in res:
             temp_ = []
-            for j in range(5):
-                temp_.append(remove_blank(i[j]))
-            temp_.append(i[5])
-            temp_.append(i[6])
+            for j in i:
+                temp_.append(remove_blank(j))
             temp.append(temp_)
         res = temp
     except Exception as e:
@@ -564,9 +579,8 @@ def get_log(ID: str, BID: bool = False) -> list:
         temp = []
         for i in res:
             temp_ = []
-            for j in range(5):
-                temp_.append(remove_blank(i[j]))
-            temp_.append(i[5])
+            for j in i:
+                temp_.append(remove_blank(j))
             temp.append(temp_)
         return temp
 
@@ -681,7 +695,7 @@ def get_book_info(BID: str) -> dict:
         ans = {}
         for i, key in zip(res, key_list):
             ans[key] = i
-            if type(i) is not int:
+            if type(i) is str:
                 ans[key] = remove_blank(i)
         res = ans
     except Exception as e:
@@ -793,44 +807,65 @@ def delete_book(BID: str) -> bool:
 
 
 # 搜索书籍
-def search_book(mes: str, SID: str = '') -> list:
+def search_book(info: str, restrict: str, SID: str = '') -> list:
     '''
-    可以传入BID或作者或出版或书名社进行查找
-    返回[[BID, BNAME, AUTHOR, PUBLICATION_DATE, PRESS, POSITION, SUM, NUM, STATE],...]
+    传入搜索信息，并指明BID或AUTHOR或PRESS或BNAME或CLASSIFYICATION进行查找，如果传入SID则匹配这个学生的借书状态
+    返回[[BID, BNAME, AUTHOR, PUBLICATION_DATE, PRESS, POSITION, SUM, NUM, CLASSIFICATION, STATE],...]
     '''
     try:
         res = []
-        val = mes.split()
-        val = [('%'+i+'%', i, '%'+i+'%', '%'+i+'%') for i in val]
         conn = pymssql.connect(CONFIG['host'], CONFIG['user'], CONFIG['pwd'], CONFIG['db'])
         cursor = conn.cursor()
 
         # 显示所有书信息
-        if mes == 'ID/书名/作者/出版社' or mes == '':
+        if info == 'ID/书名/作者/出版社' or info == '':
             cursor.execute('''
             SELECT *
             FROM book
             ''')
-        else:
-            # 一条条匹配
-            cursor.executemany('''
+            res = tuple_to_list(cursor.fetchall())
+        elif restrict != 'BID' and restrict != 'CLASSIFICATION':
+            # AUTHOR或PRESS或BNAME
+            cursor.execute(f'''
             SELECT *
             FROM book
-            WHERE PRESS LIKE %s OR BID=%s OR BNAME LIKE %s OR AUTHOR LIKE %s
-            ''', val)
-
-        res = cursor.fetchall()
-
-        # 元组转列表
-        temp = []
-        for i in res:
-            temp_ = []
-            for j in range(6):
-                temp_.append(remove_blank(i[j]))
-            temp_.append(i[6])
-            temp_.append(i[7])
-            temp.append(temp_)
-        res = temp
+            WHERE {restrict} LIKE %s
+            ''', ('%' + info + '%'))
+            res = tuple_to_list(cursor.fetchall())
+        elif restrict == 'BID':
+            # BID
+            cursor.execute('''
+            SELECT *
+            FROM book
+            WHERE BID = %s
+            ''', (info))
+            res = tuple_to_list(cursor.fetchall())
+        elif restrict == 'CLASSIFICATION':
+            # 通过分类搜书
+            cursor.execute('''
+            SELECT BID
+            FROM classification
+            WHERE CLASSIFICATION = %s
+            ''', (info))
+            for BID in cursor.fetchall():
+                cursor.execute('''
+                SELECT *
+                FROM book
+                WHERE BID = %s
+                ''', (BID[0]))
+                res.append(tuple_to_list(cursor.fetchall())[0])
+        # 把分类搜出来
+        for book_info in res:
+            CLASSIFICATIONS = ''
+            BID = book_info[0]
+            cursor.execute('''
+            SELECT CLASSIFICATION
+            FROM classification
+            WHERE BID = %s
+            ''', (BID))
+            for classification in cursor.fetchall():
+                CLASSIFICATIONS += (remove_blank(classification[0]) + ' ')
+            book_info.append(CLASSIFICATIONS)
 
         # 匹配学生信息判断每一本书是否可借
         if SID != '':
@@ -976,7 +1011,7 @@ if __name__ == '__main__':
     # print(signin(temp_login))
 
     # 查书测试
-    # print(search_book('ID/书名/作者/出版社'))
+    print(search_book('3', 'CLASSIFICATION'))
 
     # 推迟日期方法测试
     # print(postpone('2018-11-10-10:58'))
@@ -994,7 +1029,7 @@ if __name__ == '__main__':
     # print(new_book(book_msg))
 
     # 获取书本详细信息
-    print(get_book_info('444'))
+    # print(get_book_info('444'))
 
     # 删除书籍
     # print(delete_book('3'))

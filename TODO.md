@@ -54,7 +54,7 @@
     * ~~book_infomation~~
     * ~~new_book~~
     * ~~update_book~~
-    * search_book
+    * ~~search_book~~
     * ~~delete_book~~
     * ~~get_book_info~~
   * 搜索细化
