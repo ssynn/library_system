@@ -12,6 +12,51 @@ CONFIG = {
     'db': 'Library'
 }
 
+# 检查注册信息
+def check_user_info(info: dict) -> dict:
+    '''
+    info = {
+            'SID': self.accountInput.text(),
+            'PASSWORD': self.passwordInput.text(),
+            'REPASSWORD': self.repPasswordInput.text(),
+            'SNAME': self.nameInput.text(),
+            'DEPARTMENT': self.deptInput.text(),
+            'MAJOR': self.majorInput.text(),
+            'MAX': self.maxNumInput.text(),
+            'PUNISHED': 0
+        }
+    返回 ans = {
+        'res':'fail|seccuss',
+        'reason':''
+    }
+    '''
+    ans = {
+        'res':'fail',
+        'reason':''
+    }
+    if len(info['SID']) > 15:
+        ans['reason'] = 'ID长度超过15'
+        return ans
+    if not info['SID'].isalnum():
+        ans['reason'] = 'ID存在非法字符'
+        return ans
+    if info['PASSWORD'] != info['REPASSWORD']:
+        ans['reason'] = '两次输入密码不一致'
+        return ans
+    if not info['MAX'].isdigit():
+        ans['reason'] = '最大数量输入含有非法字符'
+        return ans
+    if int(info['MAX']) > 10:
+        ans['reason'] = '最多只能借阅10本书'
+        return ans
+    if len(info['DEPARTMENT']) > 20:
+        ans['reason'] = '学院名称超过20'
+        return ans
+    if len(info['MAJOR']) > 20:
+        ans['reason'] = '专业名称超过20'
+        return ans
+    ans['res'] = 'seccuss'
+    return ans
 
 # 去掉字符串末尾的0
 def remove_blank(val):
@@ -66,11 +111,12 @@ def postpone(start: str):
     temp = start.split('-')
     temp[0] = int(temp[0])
     temp[1] = int(temp[1])
+    temp[2] = int(temp[2])
     temp[1] += 2
     if temp[1] > 12:
         temp[1] -= 12
         temp[0] += 1
-    ans = '{:d}-{:0>2d}-{}-{}'.format(temp[0], temp[1], temp[2], temp[3])
+    ans = '{:d}-{:0>2d}-{:0>2d}-{}'.format(temp[0], temp[1], temp[2], temp[3])
     return ans
 
 
@@ -152,7 +198,8 @@ def init_database():
         print('Init fall 如果数据库已经成功初始化则无视此条警告')
         print(e)
     finally:
-        conn.close()
+        if conn:
+            conn.close()
 
 
 # 注册
@@ -197,7 +244,8 @@ def signup(user_message: dict) -> bool:
         print(e)
         res = False
     finally:
-        conn.close()
+        if conn: 
+            conn.close()
         return res
 
 
@@ -256,7 +304,8 @@ def signin(user_message: dict) -> dict:
         print('Signin error!')
         print(e)
     finally:
-        conn.close()
+        if conn: 
+            conn.close()
         return convert(ans)
 
 
@@ -304,7 +353,8 @@ def update_student(user_message: dict) -> bool:
         print(e)
         res = False
     finally:
-        conn.close()
+        if conn: 
+            conn.close()
         return res
 
 
@@ -334,7 +384,8 @@ def get_student_info(SID: str) -> dict:
         print(e)
         print('get student info error')
     finally:
-        conn.close()
+        if conn: 
+            conn.close()
         return convert(ans)
 
 
@@ -379,7 +430,8 @@ def search_student(info: str) -> list:
         print(e)
         res = []
     finally:
-        conn.close()
+        if conn: 
+            conn.close()
         return res
 
 
@@ -419,7 +471,8 @@ def delete_student(SID: str) -> bool:
         print(e)
         res = False
     finally:
-        conn.close()
+        if conn: 
+            conn.close()
         return res
 
 
@@ -464,7 +517,8 @@ def get_borrowing_books(ID: str, BID: bool = False) -> list:
         print(e)
         res = []
     finally:
-        conn.close()
+        if conn: 
+            conn.close()
         return res
 
 
@@ -508,7 +562,8 @@ def return_book(BID: str, SID: str) -> bool:
         print(e)
         res = False
     finally:
-        conn.close()
+        if conn: 
+            conn.close()
         return res
 
 
@@ -535,7 +590,8 @@ def pay(BID: str, SID: str, PUNISH: int) -> bool:
         print(e)
         res = False
     finally:
-        conn.close()
+        if conn: 
+            conn.close()
         return res
 
 
@@ -575,7 +631,8 @@ def get_log(ID: str, BID: bool = False) -> list:
         print(e)
         res = []
     finally:
-        conn.close()
+        if conn: 
+            conn.close()
         temp = []
         for i in res:
             temp_ = []
@@ -646,7 +703,8 @@ def new_book(book_info: dict) -> bool:
         print(e)
         res = False
     finally:
-        conn.close()
+        if conn: 
+            conn.close()
         return res
 
 
@@ -703,7 +761,8 @@ def get_book_info(BID: str) -> dict:
         print(e)
         res = None
     finally:
-        conn.close()
+        if conn: 
+            conn.close()
         return res
 
 
@@ -767,7 +826,8 @@ def update_book(book_info: dict) -> bool:
         print(e)
         res = False
     finally:
-        conn.close()
+        if conn: 
+            conn.close()
         return res
 
 
@@ -802,7 +862,8 @@ def delete_book(BID: str) -> bool:
         print(e)
         res = False
     finally:
-        conn.close()
+        if conn: 
+            conn.close()
         return res
 
 
@@ -893,7 +954,7 @@ def search_book(info: str, restrict: str, SID: str = '') -> list:
                 if len(borrowing_book) >= max_num:
                     book.append('借书达上限')
                     continue
-                if book[-1] == 0:
+                if book[-2] == 0:
                     book.append('没有剩余')
                     continue
                 # 判断是否有此书
@@ -908,7 +969,8 @@ def search_book(info: str, restrict: str, SID: str = '') -> list:
         print(e)
         res = []
     finally:
-        conn.close()
+        if conn: 
+            conn.close()
         return res
 
 
@@ -952,7 +1014,8 @@ def borrow_book(BID: str, SID: str) -> bool:
         print(e)
         res = False
     finally:
-        conn.close()
+        if conn: 
+            conn.close()
         return res
 
 
@@ -963,6 +1026,7 @@ def encrypt(val):
     password = val
     h.update(bytes(password, encoding='UTF-8'))
     result = h.hexdigest()
+    # 注释下面一行即可加密
     result = val
     return result
 
@@ -1011,10 +1075,10 @@ if __name__ == '__main__':
     # print(signin(temp_login))
 
     # 查书测试
-    print(search_book('3', 'CLASSIFICATION'))
+    # print(search_book('3', 'CLASSIFICATION'))
 
     # 推迟日期方法测试
-    # print(postpone('2018-11-10-10:58'))
+    print(postpone('2019-7-5-10:58'))
 
     # 借书测试
     # print(borrow_book('2', '1'))

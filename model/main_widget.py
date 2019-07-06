@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtWidgets import (QApplication, QWidget)
+from PyQt5.QtWidgets import (QApplication, QWidget, QMessageBox)
 from model import login
 from model import signup
 from model import database
@@ -58,25 +58,19 @@ class MainWindow(QWidget):
 
     # 注册按钮按下
     def signupFunction(self):
-        if self.signup.passwordInput.text() != self.signup.repPasswordInput.text():
-            print('密码不一致')
+        '''
+        获取信息后先检查
+        把借书数量转为int
+        加密密码
+        '''
+        self.user = self.signup.getInfo()
+        res = database.check_user_info(self.user)
+        if res['res'] == 'fail':
+            self.errorBox(res['reason'])
             return
-        if not self.signup.maxNumInput.text().isalnum():
-            print('最大数量输入错误')
-            return
-        for i in range(2, 9):
-            item = self.signup.bodyLayout.itemAt(i).widget()
-            if item.text() == item.initText:
-                item.setText('')
-        self.user = {
-            'SID': self.signup.accountInput.text(),
-            'PASSWORD': database.encrypt(self.signup.passwordInput.text()),
-            'SNAME': self.signup.nameInput.text(),
-            'DEPARTMENT': self.signup.deptInput.text(),
-            'MAJOR': self.signup.majorInput.text(),
-            'MAX': int(self.signup.maxNumInput.text()),
-            'PUNISHED': 0
-        }
+        self.user['MAX'] = int(self.user['MAX'])
+        self.user['PASSWORD'] = database.encrypt(self.user['PASSWORD'])
+
         ans = database.signup(self.user)
         self.user['class'] = 'stu'
         self.user.pop('PASSWORD')
@@ -85,7 +79,7 @@ class MainWindow(QWidget):
             print('成功')
             self.display()
         else:
-            print('注册失败')
+            self.errorBox('注册失败')
 
     def backToLogin(self):
         self.signup.setVisible(False)
@@ -107,6 +101,17 @@ class MainWindow(QWidget):
             self.body.setParent(self)
             self.body.setVisible(True)
             self.body.out.clicked.connect(self.logout)
+
+    def errorBox(self, mes: str):
+        msgBox = QMessageBox(
+            QMessageBox.Warning,
+            "警告!",
+            mes,
+            QMessageBox.NoButton,
+            self
+        )
+        msgBox.addButton("确认", QMessageBox.AcceptRole)
+        msgBox.exec_()
 
     def setMyStyle(self):
         self.setStyleSheet('''

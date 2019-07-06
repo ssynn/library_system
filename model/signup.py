@@ -1,4 +1,5 @@
 import sys
+from model import database
 from PyQt5.QtWidgets import (QApplication, QVBoxLayout, QLabel, QLineEdit, QToolButton, QGroupBox)
 
 
@@ -132,6 +133,24 @@ class Signup(QGroupBox):
         self.setFixedSize(422, 500)
         self.setWindowTitle('注册')
         self.setMyStyle()
+
+    def getInfo(self):
+        for i in range(2, 9):
+            item = self.bodyLayout.itemAt(i).widget()
+            if item.text() == item.initText:
+                item.setText('')
+
+        info = {
+            'SID': self.accountInput.text(),
+            'PASSWORD': self.passwordInput.text(),
+            'REPASSWORD': self.repPasswordInput.text(),
+            'SNAME': self.nameInput.text(),
+            'DEPARTMENT': self.deptInput.text(),
+            'MAJOR': self.majorInput.text(),
+            'MAX': self.maxNumInput.text(),
+            'PUNISHED': 0
+        }
+        return info
 
     def setMyStyle(self):
         self.setStyleSheet('''
