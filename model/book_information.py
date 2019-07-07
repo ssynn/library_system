@@ -1,6 +1,6 @@
 import sys
 from PyQt5.QtWidgets import (
-    QApplication, QVBoxLayout, QLabel, QLineEdit, QToolButton, QGroupBox)
+    QApplication, QVBoxLayout, QLabel, QLineEdit, QToolButton, QGroupBox, QMessageBox)
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtGui import QIcon
 
@@ -152,10 +152,34 @@ class BookInfo(QGroupBox):
                 self.book_msg[key] = ''
             else:
                 self.book_msg[key] = btn.text()
-        if self.book_msg['SUM'].isalnum():
+
+        if not self.book_msg['BID'].isalnum():
+            self.errorBox('书编号存在非法字符')
+            return
+        if len(self.book_msg['BID']) > 15:
+            self.errorBox('书编号长度大于15')
+            return
+        if len(self.book_msg['BNAME']) == 0:
+            self.errorBox('书名不能为空')
+            return
+        if len(self.book_msg['AUTHOR']) == 0:
+            self.errorBox('作者不能为空')
+            return
+        if len(self.book_msg['PUBLICATION_DATE']) > 12:
+            self.errorBox('日期编号过长')
+            return
+        if len(self.book_msg['PRESS']) > 12:
+            self.errorBox('出版社名称长度不能超过20')
+            return
+        po = self.book_msg['POSITION']
+        if not (len(po) == 3 and po[0].isalpha and po[1:].isdigit()):
+            self.errorBox('位置编号不合法')
+            return
+        if self.book_msg['SUM'].isdigit():
             self.book_msg['SUM'] = int(self.book_msg['SUM'])
         else:
-            self.book_msg['SUM'] = 0
+            self.errorBox('图书数量有非法字符')
+            return
         self.close()
         self.after_close.emit(self.book_msg)
 
@@ -164,6 +188,17 @@ class BookInfo(QGroupBox):
         self.setWindowTitle('编辑书本')
         self.setWindowIcon(QIcon('icon/book.png'))
         self.setMyStyle()
+    
+    def errorBox(self, mes: str):
+        msgBox = QMessageBox(
+            QMessageBox.Warning,
+            "警告!",
+            mes,
+            QMessageBox.NoButton,
+            self
+        )
+        msgBox.addButton("确认", QMessageBox.AcceptRole)
+        msgBox.exec_()
 
     def setMyStyle(self):
         self.setStyleSheet('''
